@@ -8,6 +8,18 @@ const LABELS = {
 const ABSOLUTE_PATTERN =
   /(무조건|항상|완전히|절대|100%|모든|always|never|completely|guarantee)/i;
 
+const KOREAN_PROVINCES = [
+  { canonical: "전라남도", aliases: ["전라남도", "전남"] },
+  { canonical: "전라북도", aliases: ["전라북도", "전북"] },
+  { canonical: "경상남도", aliases: ["경상남도", "경남"] },
+  { canonical: "경상북도", aliases: ["경상북도", "경북"] },
+  { canonical: "충청남도", aliases: ["충청남도", "충남"] },
+  { canonical: "충청북도", aliases: ["충청북도", "충북"] },
+  { canonical: "강원특별자치도", aliases: ["강원특별자치도", "강원도", "강원"] },
+  { canonical: "경기도", aliases: ["경기도", "경기"] },
+  { canonical: "제주특별자치도", aliases: ["제주특별자치도", "제주도", "제주"] },
+];
+
 const CONFLICT_RULES = [
   {
     test: /(lambda|람다).*(5분|5\s*minutes?|300초)/i,
@@ -76,8 +88,110 @@ function findEvidence(evidenceDocs, evidenceId) {
   return evidenceDocs.find((evidence) => evidence.id === evidenceId);
 }
 
+function normalizeForComparison(value) {
+  let text = String(value ?? "").toLowerCase();
+  for (const province of KOREAN_PROVINCES) {
+    for (const alias of province.aliases) {
+      text = text.replaceAll(alias.toLowerCase(), province.canonical.toLowerCase());
+    }
+  }
+  return text
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function compactKorean(value) {
+  return normalizeForComparison(value).replace(/\s+/g, "");
+}
+
+function claimTokens(value) {
+  return normalizeForComparison(value)
+    .split(" ")
+    .map((token) => token.replace(/(은|는|이|가|을|를|에|에서|으로|로|이다|있다|하고|하는|한)$/u, ""))
+    .filter((token) => token.length >= 2)
+    .filter((token) => !["위치", "도시", "지역", "대한민국", "한국"].includes(token));
+}
+
+function provinceInText(value) {
+  const compact = compactKorean(value);
+  return KOREAN_PROVINCES.find((province) =>
+    compact.includes(province.canonical.toLowerCase().replace(/\s+/g, "")),
+  );
+}
+
+function subjectBeforeTopicMarker(value) {
+  const match = /(.+?)(?:은|는|이|가)\s/.exec(String(value ?? ""));
+  return match?.[1]?.trim();
+}
+
+function sourceFromInternetEvidence(evidence) {
+  return evidence.slice(0, 3).map((item) => ({
+    title: item.title,
+    url: item.url,
+  }));
+}
+
+function judgeFromInternetEvidence(claim, internetEvidence) {
+  if (!internetEvidence.length) return null;
+
+  const text = claim.text ?? "";
+  const evidenceText = internetEvidence
+    .map((item) => [item.title, item.summaryKo, item.evidenceText].filter(Boolean).join(" "))
+    .join(" ");
+  const normalizedEvidence = normalizeForComparison(evidenceText);
+  const tokens = claimTokens(text);
+  const matchedTokens = tokens.filter((token) => normalizedEvidence.includes(token));
+  const claimProvince = provinceInText(text);
+  const evidenceProvince = provinceInText(evidenceText);
+  const subject = subjectBeforeTopicMarker(text);
+  const subjectMatches = !subject || compactKorean(evidenceText).includes(compactKorean(subject));
+
+  if (
+    claimProvince &&
+    evidenceProvince &&
+    claimProvince.canonical !== evidenceProvince.canonical &&
+    subjectMatches
+  ) {
+    return {
+      claimId: claim.claimId,
+      text,
+      label: LABELS.conflicted,
+      confidence: 0.78,
+      reason:
+        `검색된 근거는 ${subject ?? "대상"}의 위치를 ${evidenceProvince.canonical}로 보여주지만, claim은 ${claimProvince.canonical}라고 말해 서로 충돌한다.`,
+      correctedText:
+        `${subject ?? "해당 대상"}은 ${evidenceProvince.canonical}에 위치한다고 표현해야 한다.`,
+      sources: sourceFromInternetEvidence(internetEvidence),
+    };
+  }
+
+  if (tokens.length > 0 && matchedTokens.length >= Math.max(2, Math.ceil(tokens.length * 0.6))) {
+    return {
+      claimId: claim.claimId,
+      text,
+      label: LABELS.supported,
+      confidence: 0.72,
+      reason:
+        "검색된 근거 후보의 제목과 요약이 claim의 핵심 표현과 충분히 일치한다.",
+      correctedText: "수정이 필요하지 않다.",
+      sources: sourceFromInternetEvidence(internetEvidence),
+    };
+  }
+
+  return null;
+}
+
 export function fallbackJudgeClaim(claim, evidenceDocs) {
   const text = claim.text ?? "";
+  const internetJudgment = judgeFromInternetEvidence(
+    claim,
+    evidenceDocs.filter((evidence) => evidence.sourceType === "internet_search"),
+  );
+  if (internetJudgment) {
+    return internetJudgment;
+  }
+
   const conflictRule = CONFLICT_RULES.find((rule) => rule.test.test(text));
   if (conflictRule) {
     const evidence = findEvidence(evidenceDocs, conflictRule.evidenceId);

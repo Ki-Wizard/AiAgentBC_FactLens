@@ -67,8 +67,8 @@ Parameters:
     Description: Sets FACTLENS_SEARCH_PROVIDER for internet evidence search.
   FactLensAllowedSourceDomains:
     Type: String
-    Default: docs.aws.amazon.com,aws.amazon.com,repost.aws
-    Description: Comma-separated allowed domains for internet evidence results.
+    Default: '*'
+    Description: Comma-separated allowed domains for internet evidence results. Use * for broad web evidence search.
   FactLensSearchResultLimit:
     Type: Number
     Default: 3
@@ -100,6 +100,8 @@ Globals:
         FACTLENS_SEARCH_PROVIDER: !Ref FactLensSearchProvider
         FACTLENS_ALLOWED_SOURCE_DOMAINS: !Ref FactLensAllowedSourceDomains
         FACTLENS_SEARCH_RESULT_LIMIT: !Ref FactLensSearchResultLimit
+        BEDROCK_KNOWLEDGE_BASE_ID: DAQOBSWQTC
+        BEDROCK_KB_RESULT_LIMIT: 5
         NODE_OPTIONS: --enable-source-maps
 
 Metadata:
@@ -239,6 +241,11 @@ Resources:
               Action:
                 - s3:PutObject
               Resource: !Sub arn:${AWS::Partition}:s3:::${InputArchiveBucket}/*
+            - Sid: BedrockKnowledgeBaseRetrieve
+              Effect: Allow
+              Action:
+                - bedrock:Retrieve
+              Resource: !Sub arn:${AWS::Partition}:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/DAQOBSWQTC
 
 Outputs:
   ApiEndpoint:

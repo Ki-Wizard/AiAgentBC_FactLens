@@ -1,8 +1,4 @@
-const DEFAULT_ALLOWED_DOMAINS = Object.freeze([
-  "docs.aws.amazon.com",
-  "aws.amazon.com",
-  "repost.aws",
-]);
+const DEFAULT_ALLOWED_DOMAINS = Object.freeze([]);
 
 const DEFAULT_TIMEOUT_MS = 4500;
 const DEFAULT_LIMIT = 3;
@@ -10,6 +6,9 @@ const DEFAULT_LIMIT = 3;
 function envList(name, fallback) {
   const rawValue = process.env[name];
   if (!rawValue) return fallback;
+  if (rawValue.trim() === "*" || rawValue.trim().toLowerCase() === "all") {
+    return [];
+  }
   return rawValue
     .split(",")
     .map((item) => item.trim())
@@ -22,11 +21,13 @@ function normalizeText(value) {
 
 function buildQuery(claim, allowedDomains) {
   const claimQuery = normalizeText(claim.normalizedQuery || claim.text);
-  const primaryDomain = allowedDomains[0] ?? "docs.aws.amazon.com";
-  return `site:${primaryDomain} ${claimQuery}`;
+  const primaryDomain = allowedDomains[0];
+  return primaryDomain ? `site:${primaryDomain} ${claimQuery}` : claimQuery;
 }
 
 function isAllowedUrl(url, allowedDomains) {
+  if (!allowedDomains.length) return true;
+
   try {
     const hostname = new URL(url).hostname.toLowerCase();
     return allowedDomains.some((domain) => {
@@ -117,6 +118,27 @@ async function searchGoogleCse(query, options) {
   };
 }
 
+function stripHtml(value) {
+  return normalizeText(String(value ?? "").replace(/<[^>]+>/g, " "));
+}
+
+async function searchWikipedia(query, options) {
+  const url = new URL("https://ko.wikipedia.org/w/api.php");
+  url.searchParams.set("action", "query");
+  url.searchParams.set("list", "search");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("origin", "*");
+  url.searchParams.set("srsearch", query);
+  url.searchParams.set("srlimit", String(options.limit));
+
+  const data = await fetchJson(url, { timeoutMs: options.timeoutMs });
+
+  return {
+    provider: "wikipedia",
+    rawResults: data.query?.search ?? [],
+  };
+}
+
 function normalizeResult(provider, rawResult) {
   if (provider === "brave") {
     return {
@@ -134,6 +156,15 @@ function normalizeResult(provider, rawResult) {
     };
   }
 
+  if (provider === "wikipedia") {
+    const title = stripHtml(rawResult.title);
+    return {
+      title,
+      url: `https://ko.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s+/g, "_"))}`,
+      snippet: stripHtml(rawResult.snippet),
+    };
+  }
+
   return {
     title: rawResult.title,
     url: rawResult.link,
@@ -147,7 +178,7 @@ function toEvidence(result, index, context) {
     title: result.title || result.url,
     sourceType: "internet_search",
     url: result.url,
-    service: "AWS official web",
+    service: "Internet evidence",
     category: context.claim.category ?? "other",
     keywords: [],
     summaryKo: `${context.provider} 검색으로 찾은 공식 출처 후보입니다.`,
@@ -164,11 +195,13 @@ async function runConfiguredProvider(query, options) {
   if (provider === "brave") return searchBrave(query, options);
   if (provider === "serpapi") return searchSerpApi(query, options);
   if (provider === "google_cse") return searchGoogleCse(query, options);
+  if (provider === "wikipedia") return searchWikipedia(query, options);
 
   return (
     (await searchBrave(query, options)) ??
     (await searchSerpApi(query, options)) ??
-    (await searchGoogleCse(query, options))
+    (await searchGoogleCse(query, options)) ??
+    (await searchWikipedia(query, options))
   );
 }
 
