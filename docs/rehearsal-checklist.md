@@ -6,7 +6,7 @@
 - [ ] `sample-data/sample_wrong_aws_deck.md`를 열어 입력 내용을 확인합니다.
 - [ ] `sample-data/expected-results/analyze-success.json`을 열어 mock 결과를 확인합니다.
 - [ ] `sample-data/expected-results/bedrock-fallback.json`을 열어 fallback 결과를 확인합니다.
-- [ ] mock JSON의 claim이 `claimId`, `text`, `label`, `reason`, `correctedText`, `sources`를 포함하는지 확인합니다.
+- [ ] mock JSON의 claim이 `claimId`, `text`, `label`, `confidence`, `reason`, `correctedText`, `sources`, `evidence`를 포함하는지 확인합니다.
 - [ ] 결과 화면에서 최소 3가지 색상 라벨이 보이는지 확인합니다.
 - [ ] Lambda timeout claim과 Guardrails 100% claim을 설명할 수 있는지 확인합니다.
 

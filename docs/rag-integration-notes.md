@@ -32,6 +32,13 @@ Claim 객체는 아래 필드를 포함합니다.
 - `sources`
 - `evidence`
 
+## Team Handoff
+
+- Backend는 RAG 실제 응답과 fallback 응답 모두에서 위 claim 필드를 동일하게 유지합니다.
+- Frontend는 `claimId`를 결과 카드 key로 사용하고, `label`, `confidence`, `reason`, `correctedText`, `sources`, `evidence`를 그대로 렌더링합니다.
+- RAG는 Bedrock 응답 실패 시에도 `sample-data/expected-results/bedrock-fallback.json`과 같은 shape을 반환합니다.
+- Demo 자료는 `sample-data/expected-results/analyze-success.json`을 정상 응답 fixture로 사용합니다.
+
 ## Evidence Storage
 
 실제 팀 내부 AWS 버킷명은 계정 ID를 포함하므로 공개 문서에는 그대로 커밋하지 않습니다.
