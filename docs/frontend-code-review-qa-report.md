@@ -6,20 +6,20 @@
 
 ## 결론
 
-Frontend는 현재 발표 데모 기준으로는 동작 가능한 상태입니다. 텍스트 입력, 분석 요청, 결과 렌더링, 라벨 색상, fallback 결과 표시, 기존 결과 조회 UI까지 구현되어 있습니다.
+Frontend는 현재 발표 데모 기준으로 동작 가능한 상태입니다. 텍스트 입력, 분석 요청, 결과 렌더링, 라벨 색상, fallback 결과 표시, 기존 결과 조회 UI까지 구현되어 있습니다.
 
-다만 실제 Backend/API와의 end-to-end 검증은 아직 완료되지 않았고, 자동화 테스트가 없습니다. 통합 배포 관점에서는 `npm run build`는 통과했지만, 실제 API Gateway URL, CORS, S3 hosting 배포까지는 확인이 필요합니다.
+실제 Backend API Gateway와 `POST /analyze`, `GET /analyses/{analysisId}` 통합 호출을 확인했습니다. 응답 schema 방어 로직과 최소 Node 테스트도 추가했습니다. 통합 배포 관점에서는 `npm run build`, `npm test`, API Gateway smoke check는 통과했지만, 브라우저 클릭 검증과 S3 hosting 또는 CloudFront 배포 확인은 아직 필요합니다.
 
 ## 평가 요약
 
 | 평가 요소 | 현재 상태 | 점수 | 판단 |
 |---|---:|---:|---|
-| 기능 구현 | 데모 가능 | 80/100 | 핵심 UI와 schema 대응은 완료. 실제 API 검증 전 |
-| 설계 | 양호 | 78/100 | 단순하고 이해 쉬움. API client 분리와 schema 검증은 부족 |
-| 통합 배포 | 부분 완료 | 60/100 | build 성공. 실제 Backend, CORS, S3 배포 검증 필요 |
-| 코드 품질 | 보통 이상 | 72/100 | 작고 명확함. 테스트, 에러 처리, 데이터 방어 로직 보강 필요 |
+| 기능 구현 | 통합 가능 | 88/100 | 핵심 UI와 실제 Backend API 연동 확인 |
+| 설계 | 양호 | 84/100 | 응답 정규화 분리 완료. API client 분리는 아직 필요 |
+| 통합 배포 | 부분 완료 | 80/100 | build, test, API Gateway smoke check 성공. S3/CloudFront 검증 필요 |
+| 코드 품질 | 보통 이상 | 82/100 | 정규화 테스트와 실패 로그 추가. UI 테스트는 아직 필요 |
 
-종합: 73/100
+종합: 84/100
 
 ## 기능 구현 QA
 
@@ -33,6 +33,9 @@ Frontend는 현재 발표 데모 기준으로는 동작 가능한 상태입니�
 - 4개 label 색상 매핑 적용
 - fallback/mock 결과도 정상 결과처럼 렌더링
 - `VITE_API_BASE_URL` 환경변수 사용
+- 실제 Backend API endpoint 연결 확인
+- `normalizeAnalysisResult()`로 응답 schema 방어 처리
+- API 실패 시 `console.error` 로그 출력
 
 검증 결과:
 
@@ -44,7 +47,28 @@ npm run build
 결과:
 
 ```text
-✓ built in 597ms
+✓ built
+```
+
+실제 Backend API:
+
+```text
+https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
+```
+
+`POST /analyze` 통합 테스트:
+
+```text
+HTTP 200
+analysisId: analysis-964aade2-1533-4b27-9940-10187bf5b110
+label: 공식 근거와 충돌
+```
+
+`GET /analyses/{analysisId}` 통합 테스트:
+
+```text
+HTTP 200
+analysisId: analysis-964aade2-1533-4b27-9940-10187bf5b110
 ```
 
 샘플 응답 JSON 검증:
@@ -55,12 +79,26 @@ python3 -m json.tool sample-data/expected-results/analyze-success.json
 
 결과: JSON 문법 정상
 
+자동 테스트:
+
+```bash
+cd frontend
+npm test
+```
+
+결과:
+
+```text
+tests 5
+pass 5
+fail 0
+```
+
 부족한 점:
 
-- 실제 Backend endpoint로 `POST /analyze`, `GET /analyses/{analysisId}`를 호출한 통합 테스트는 아직 없음
 - `evidence` 필드는 받도록 schema에 맞췄지만 UI에서는 아직 상세 표시하지 않음
-- API 실패 시 fallback으로 전환되지만, 사용자나 개발자가 실패 원인을 화면에서 구분하기 어려움
-- `summary`, `claims`, `confidence`, `sources`가 비정상 형태일 때 완전한 방어 렌더링은 아님
+- API 실패 시 화면에는 fallback 결과가 정상 결과처럼 표시되므로, 사용자는 실패 여부를 구분하지 못함
+- 브라우저 클릭 기반 CORS 검증은 아직 직접 확인 전
 
 ## 설계 리뷰
 
@@ -71,18 +109,17 @@ python3 -m json.tool sample-data/expected-results/analyze-success.json
 - RAG schema 변경에 대응해 `text` 우선, `claimText` fallback 구조를 둠
 - label 색상과 summary key가 명확하게 고정되어 있음
 - sample-data와 integration 문서가 실제 UI schema와 맞춰져 있음
+- `src/normalizers.js`로 schema 방어 로직을 중앙화함
 
 부족한 점:
 
 - API 호출 로직이 `App.jsx` 내부에 있어 기능이 커지면 유지보수가 어려워짐
-- 응답 schema validation 함수가 없어 Backend 응답이 조금만 깨져도 런타임 오류 가능성이 있음
 - `VITE_API_TIMEOUT`은 문서에 있지만 실제 fetch timeout 구현은 없음
 - fallback 데이터가 `App.jsx`에 직접 들어 있어 샘플 JSON과 중복 관리됨
 
 권장 개선:
 
 - `src/api.js`로 `analyzeText`, `loadAnalysis` API 호출 분리
-- `src/schema.js` 또는 `src/normalizers.js`에 `normalizeAnalysisResult()` 추가
 - `mockResult`를 `sample-data/expected-results/analyze-success.json`과 한 출처로 맞추는 구조 검토
 - fetch timeout 또는 AbortController 적용
 
@@ -91,23 +128,25 @@ python3 -m json.tool sample-data/expected-results/analyze-success.json
 확인한 것:
 
 - Frontend production build 성공
+- API Gateway `POST /analyze` 실제 호출 성공
+- API Gateway `GET /analyses/{analysisId}` 실제 조회 성공
+- `npm test` 기반 schema 방어 테스트 성공
 - API base URL 환경변수 구조 존재
 - `frontend/.env.example` 제공
 - `infra/DEPLOYMENT.md`에 `ap-northeast-2`, AWS SAM, CORS 기준 문서화
 - RAG to Backend handoff 문서에 실제 S3 evidence bucket 정리
+- `docs/frontend-smoke-test.md` 작성
 
 부족한 점:
 
-- 실제 API Gateway URL로 통합 호출 검증 전
-- CORS가 실제 API Gateway에서 열렸는지 확인 전
+- 브라우저에서 실제 버튼 클릭 및 CORS 동작 확인 전
 - S3 static hosting 또는 CloudFront 배포 검증 전
-- Backend/Infra 실제 SAM template 구현 여부는 확인되지 않음
-- 배포 후 smoke test 절차가 자동화되어 있지 않음
+- 배포 후 smoke test 절차는 문서화됐지만 CI 자동화는 아직 없음
 
 필수 통합 테스트:
 
 ```bash
-VITE_API_BASE_URL=https://<api-id>.execute-api.ap-northeast-2.amazonaws.com
+VITE_API_BASE_URL=https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
 npm run build
 ```
 
@@ -127,26 +166,23 @@ npm run build
 - CSS가 별도 파일로 분리되어 있고 responsive media query가 있음
 - label별 색상 class가 명확함
 - `getClaimText`, `getSources`, `getClaimKey` helper로 일부 응답 변형을 흡수함
+- `normalizeAnalysisResult()`로 summary, claims, confidence, sources 기본값을 처리함
+- API 실패 시 `console.error`로 원인 추적 가능
 
 리스크:
 
-- 자동 테스트가 없음
-- API 실패 catch가 오류를 삼키고 fallback만 표시함
-- `analysis.summary.totalClaims`처럼 중첩 필드에 직접 접근하는 부분은 응답 누락 시 오류 가능
-- `Math.round(claim.confidence * 100)`은 confidence가 없거나 문자열이면 잘못 표시될 수 있음
+- React Testing Library 기반 UI 테스트는 아직 없음
+- API 실패 시 사용자 화면에는 실패 여부를 별도 표시하지 않음
 - 접근성 관점에서 로딩 상태, 오류 상태, 결과 갱신 알림이 충분하지 않음
 
 권장 테스트:
 
 - `npm run build`
-- JSON schema 검증
+- `npm test`
+- JSON fixture 검증
 - React Testing Library로 다음 테스트 추가:
   - fallback 결과 렌더링
   - label 4종 색상 class 적용
-  - `text` 필드 렌더링
-  - `claimText` fallback 렌더링
-  - sources가 빈 배열일 때 오류 없음
-  - source가 `url` 대신 `uri`를 내려줘도 표시됨
   - API 실패 시 fallback 적용
 
 ## 발견 사항
@@ -157,17 +193,17 @@ npm run build
 
 ### Medium
 
-1. 실제 Backend 통합 검증 미완료
+1. UI 자동화 테스트 미완료
 
-현재는 build와 mock/fallback 기준 검증입니다. 실제 API Gateway 또는 local backend와 연결해 `POST /analyze`, `GET /analyses/{analysisId}`가 같은 schema로 동작하는지 확인해야 합니다.
+정규화 로직은 `npm test`로 검증하지만, 실제 React 화면 렌더링과 클릭 흐름을 검증하는 테스트는 아직 없습니다.
 
-2. API 오류 원인 확인 어려움
+2. 브라우저 클릭/CORS 검증 미완료
 
-요구사항상 fallback 결과를 특별 취급하지 않는 것은 맞지만, 개발/QA 중에는 실패 원인을 추적할 방법이 필요합니다. 화면에는 노출하지 않더라도 `console.error` 또는 dev-only 로그가 필요합니다.
+명령 기반 API Gateway smoke check는 성공했습니다. 다만 실제 브라우저에서 `분석 시작`, `결과 조회` 버튼을 누르는 CORS 검증은 아직 별도 확인이 필요합니다.
 
-3. 응답 방어 로직 부족
+3. API 호출 모듈 분리 필요
 
-`summary`나 `claims`가 누락되면 화면이 깨질 수 있습니다. Backend가 안정화되기 전까지는 normalize 단계가 필요합니다.
+API 호출 로직이 아직 `App.jsx`에 남아 있습니다. 규모가 커지면 `src/api.js`로 분리하는 것이 좋습니다.
 
 ### Low
 
@@ -201,31 +237,29 @@ sources[].excerpt
 evidence
 ```
 
-2. Backend local 또는 API Gateway URL을 받아 `.env.local` 설정 후 통합 테스트
+2. Backend API Gateway URL을 `.env.local`에 설정
 
 ```env
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
 ```
 
-3. `normalizeAnalysisResult()` 추가
+3. 브라우저 클릭 기반 smoke test 수행
 
-목표:
+확인:
 
-- summary 기본값 처리
-- claims 빈 배열 처리
-- confidence 기본값 처리
-- sources 빈 배열 처리
-- `text`/`claimText` 호환 처리 중앙화
+- `분석 시작` 클릭
+- `결과 조회` 클릭
+- CORS 오류 없음
 
-4. 최소 테스트 추가
+4. UI 테스트 추가
 
 우선순위:
 
-- schema 렌더링 테스트
-- fallback 렌더링 테스트
-- API 실패 테스트
+- fallback 결과 렌더링
+- label 4종 색상 class 적용
+- API 실패 시 fallback 적용
 
-5. 배포 전 smoke test 문서화
+5. S3/CloudFront 배포 검증
 
 필수 확인:
 
@@ -237,4 +271,4 @@ VITE_API_BASE_URL=http://localhost:8000
 
 ## 현재 부족한 것 한 줄 정리
 
-가장 부족한 부분은 실제 Backend와의 통합 검증, 자동화 테스트, 응답 schema 방어 로직입니다. 발표 데모는 가능한 상태지만, 평가에서 안정성과 완성도를 높이려면 이 세 가지를 먼저 보강해야 합니다.
+가장 부족한 부분은 브라우저 클릭 기반 CORS 검증, UI 자동화 테스트, S3/CloudFront 배포 검증입니다. 실제 Backend API 연동, schema 방어 로직, 실패 로그, 최소 Node 테스트, smoke test 문서화는 완료됐습니다.

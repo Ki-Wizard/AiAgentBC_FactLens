@@ -64,10 +64,16 @@
 
 ```env
 # Backend API 주소
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
 
 # 선택 사항: API 타임아웃 (ms)
 VITE_API_TIMEOUT=30000
+```
+
+현재 배포된 Backend API:
+
+```text
+https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
 ```
 
 ### .env.production (프로덕션)
@@ -241,7 +247,7 @@ npm run dev
 ### 3. Backend API 연결
 Backend가 준비되면 `.env.local` 추가:
 ```env
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
 ```
 
 서버 재시작 (`npm run dev`)

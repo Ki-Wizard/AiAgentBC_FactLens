@@ -1,6 +1,12 @@
 import React from "react";
 import { AlertTriangle, CheckCircle2, FileSearch, Loader2, Search, ShieldQuestion } from "lucide-react";
 import { useMemo, useState } from "react";
+import {
+  getClaimKey,
+  getClaimText,
+  getSourceTarget,
+  normalizeAnalysisResult,
+} from "./normalizers.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -83,6 +89,8 @@ const mockResult = {
   ],
 };
 
+const fallbackResult = normalizeAnalysisResult(mockResult);
+
 const labelMeta = {
   "근거 있음": {
     className: "label-supported",
@@ -110,20 +118,8 @@ function getLabelMeta(label) {
   return labelMeta[label] || labelMeta["근거 부족"];
 }
 
-function getClaimKey(claim, index) {
-  return claim.claimId || `claim-${index + 1}`;
-}
-
-function getClaimText(claim) {
-  return claim.text || claim.claimText || "";
-}
-
 function getSources(claim) {
   return Array.isArray(claim.sources) ? claim.sources : [];
-}
-
-function getSourceTarget(source) {
-  return source.url || source.uri || "";
 }
 
 function isExternalLink(target) {
@@ -153,9 +149,9 @@ function ClaimBadge({ label }) {
 
 function App() {
   const [inputText, setInputText] = useState(sampleInput);
-  const [analysis, setAnalysis] = useState(mockResult);
-  const [selectedClaimKey, setSelectedClaimKey] = useState(getClaimKey(mockResult.claims[0], 0));
-  const [lookupId, setLookupId] = useState(mockResult.analysisId);
+  const [analysis, setAnalysis] = useState(fallbackResult);
+  const [selectedClaimKey, setSelectedClaimKey] = useState(getClaimKey(fallbackResult.claims[0], 0));
+  const [lookupId, setLookupId] = useState(fallbackResult.analysisId);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -167,9 +163,10 @@ function App() {
   }, [analysis, selectedClaimKey]);
 
   const applyAnalysis = (result) => {
-    setAnalysis(result);
-    setSelectedClaimKey(result.claims?.[0] ? getClaimKey(result.claims[0], 0) : "");
-    setLookupId(result.analysisId || "");
+    const normalizedResult = normalizeAnalysisResult(result);
+    setAnalysis(normalizedResult);
+    setSelectedClaimKey(normalizedResult.claims?.[0] ? getClaimKey(normalizedResult.claims[0], 0) : "");
+    setLookupId(normalizedResult.analysisId || "");
   };
 
   const analyzeText = async () => {
@@ -184,7 +181,7 @@ function App() {
 
     if (!API_BASE_URL) {
       window.setTimeout(() => {
-        applyAnalysis(mockResult);
+        applyAnalysis(fallbackResult);
         setIsLoading(false);
       }, 500);
       return;
@@ -203,8 +200,9 @@ function App() {
 
       const result = await response.json();
       applyAnalysis(result);
-    } catch {
-      applyAnalysis(mockResult);
+    } catch (error) {
+      console.error("[FactLens] POST /analyze failed. Rendering fallback result.", error);
+      applyAnalysis(fallbackResult);
     } finally {
       setIsLoading(false);
     }
@@ -222,7 +220,7 @@ function App() {
 
     if (!API_BASE_URL) {
       window.setTimeout(() => {
-        applyAnalysis(mockResult);
+        applyAnalysis(fallbackResult);
         setIsLoading(false);
       }, 400);
       return;
@@ -237,8 +235,9 @@ function App() {
 
       const result = await response.json();
       applyAnalysis(result);
-    } catch {
-      applyAnalysis(mockResult);
+    } catch (error) {
+      console.error("[FactLens] GET /analyses/{analysisId} failed. Rendering fallback result.", error);
+      applyAnalysis(fallbackResult);
     } finally {
       setIsLoading(false);
     }
@@ -252,7 +251,7 @@ function App() {
             <FileSearch size={28} aria-hidden="true" />
             <span>FactLens</span>
           </div>
-          <h1>발표자료 속 AWS/AI 주장을 근거와 대조합니다.</h1>
+          <h1>발표자료와 보고서 속 주장을 근거와 대조합니다.</h1>
           <p className="hero-sub">
             문장 단위로 claim을 추출하고 공식 문서와 자동 대조해, 근거·충돌·과장을 한눈에
             보여드립니다.
