@@ -194,6 +194,7 @@ function toStoredAnalysis(analysis) {
   return cloneJson({
     analysisId: analysis.analysisId,
     status: analysis.status,
+    errorMessage: analysis.errorMessage,
     summary: analysis.summary,
     claims: analysis.claims,
   });

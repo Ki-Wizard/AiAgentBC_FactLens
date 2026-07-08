@@ -18,6 +18,8 @@ $envMap = @{
         EVIDENCE_BUCKET_NAME = 'factlens-dev-evidence-docs-069423016509-ap-northeast-2'
         EVIDENCE_CORPUS_KEY = 'source-docs/aws-evidence-corpus.md'
         FALLBACK_EVIDENCE_KEY = 'fallback/evidence_docs.json'
+        INPUT_ARCHIVE_BUCKET_NAME = 'factlens-input-archive-dev-ap-northeast-2'
+        INPUT_ARCHIVE_PREFIX = 'local-smoke'
     }
 }
 

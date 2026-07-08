@@ -99,6 +99,54 @@ test('app: GET /analyses/{analysisId} returns ANALYSIS_NOT_FOUND for unknown val
   });
 });
 
+test('app: GET /analyses/{analysisId} accepts pathParameters analysisId', async () => {
+  const storage = createMemoryStorage();
+  await storage.putAnalysis({
+    analysisId: ANALYSIS_ID,
+    status: 'COMPLETED',
+    summary: {
+      totalClaims: 0,
+      supported: 0,
+      conflicted: 0,
+      insufficient: 0,
+      exaggerated: 0,
+    },
+    claims: [],
+  });
+
+  const handler = createApiHandler({
+    storage,
+    analyzer: async () => {
+      throw new Error('GET should not call analyzer');
+    },
+  });
+
+  const response = await handler({
+    requestContext: {
+      http: {
+        method: 'GET',
+      },
+    },
+    pathParameters: {
+      analysisId: ANALYSIS_ID,
+    },
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(parseResponse(response), {
+    analysisId: ANALYSIS_ID,
+    status: 'COMPLETED',
+    summary: {
+      totalClaims: 0,
+      supported: 0,
+      conflicted: 0,
+      insufficient: 0,
+      exaggerated: 0,
+    },
+    claims: [],
+  });
+});
+
 test('app: OPTIONS returns preflight headers', async () => {
   const originalAllowOrigin = process.env.CORS_ALLOW_ORIGIN;
   process.env.CORS_ALLOW_ORIGIN = 'http://localhost:5173';

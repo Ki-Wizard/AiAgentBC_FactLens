@@ -101,7 +101,7 @@ async function defaultAnalyzer(input) {
 
 function resolveRoute(event) {
   const method = (event?.requestContext?.http?.method ?? event?.httpMethod ?? '').toUpperCase();
-  const path = event?.rawPath ?? event?.requestContext?.http?.path ?? event?.path ?? '';
+  const path = normalizePath(event?.rawPath ?? event?.requestContext?.http?.path ?? event?.path ?? '');
 
   if (method === 'OPTIONS') {
     return { type: 'options' };
@@ -112,6 +112,11 @@ function resolveRoute(event) {
   }
 
   if (method === 'GET') {
+    const pathAnalysisId = resolveGetAnalysisId(event, path);
+    if (pathAnalysisId != null) {
+      return { type: 'getAnalysis', analysisId: pathAnalysisId };
+    }
+
     const match = /^\/analyses\/([^/]+)$/.exec(path);
     if (match != null) {
       return { type: 'getAnalysis', analysisId: match[1] };
@@ -119,4 +124,35 @@ function resolveRoute(event) {
   }
 
   return { type: 'unknown' };
+}
+
+function resolveGetAnalysisId(event, path) {
+  const pathParameters = event?.pathParameters ?? {};
+  if (typeof pathParameters.analysisId === 'string' && pathParameters.analysisId.trim() !== '') {
+    return pathParameters.analysisId;
+  }
+
+  if (typeof pathParameters.id === 'string' && pathParameters.id.trim() !== '') {
+    return pathParameters.id;
+  }
+
+  if (typeof path === 'string' && path.length > 0 && path !== '/analyses') {
+    const match = /^\/analyses\/([^/]+)$/.exec(path);
+    return match == null ? null : match[1];
+  }
+
+  return null;
+}
+
+function normalizePath(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const normalized = value.trim();
+  if (normalized === '' || normalized === '/') {
+    return normalized;
+  }
+
+  return normalized.endsWith('/') ? normalized.replace(/\/+$/, '') : normalized;
 }
