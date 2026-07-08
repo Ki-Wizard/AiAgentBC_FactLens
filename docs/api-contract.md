@@ -31,7 +31,8 @@ Request body:
 ```json
 {
   "documentText": "AWS Lambda runs your code without provisioning servers.",
-  "maxClaims": 10
+  "maxClaims": 10,
+  "searchMode": "fallback"
 }
 ```
 
@@ -42,6 +43,16 @@ Validation:
 - `maxClaims` is optional.
 - `maxClaims` defaults to `10`.
 - `maxClaims` must be an integer from `1` through `20`.
+- `searchMode` is optional.
+- `searchMode` defaults to backend configuration.
+- `searchMode` must be `fallback` or `internet` when provided.
+
+Search modes:
+
+| Value | Meaning |
+| --- | --- |
+| `fallback` | Use `sample-data/evidence_docs.json` / packaged fallback evidence only |
+| `internet` | Search official-source web results first, then fall back to packaged evidence if no search API key or result is available |
 
 Success response:
 
@@ -169,6 +180,7 @@ Error codes:
 | `INVALID_DOCUMENT_TEXT` | `documentText` is missing, not a string, or empty after trimming |
 | `INVALID_JSON` | Request body is not valid JSON |
 | `INVALID_MAX_CLAIMS` | `maxClaims` is not an integer from `1` through `20` |
+| `INVALID_SEARCH_MODE` | `searchMode` is not `fallback` or `internet` |
 | `ANALYSIS_NOT_FOUND` | No analysis exists for the requested `analysisId` |
 
 ## Out of Scope

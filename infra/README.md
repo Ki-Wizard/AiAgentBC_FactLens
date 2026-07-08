@@ -49,12 +49,16 @@ aws cloudformation deploy \
     EvidenceBucketName=factlens-dev-evidence-docs-069423016509-ap-northeast-2 \
     EvidenceCorpusKey=source-docs/aws-evidence-corpus.md \
     FallbackEvidenceKey=fallback/evidence_docs.json \
+    FactLensSearchMode=fallback \
+    FactLensSearchProvider=auto \
+    FactLensAllowedSourceDomains=docs.aws.amazon.com,aws.amazon.com,repost.aws \
+    FactLensSearchResultLimit=3 \
   --no-fail-on-empty-changeset
 ```
 
 Default stack settings live in `infra/samconfig.toml`: stack name `factlens-backend-api`, region `ap-northeast-2`, and `CAPABILITY_IAM` for the Lambda execution role.
 
-Deployment parameters keep backend runtime configuration explicit: `ANALYSES_TABLE_NAME`, `FACTLENS_USE_FALLBACK`, `FACTLENS_STORAGE_MODE`, `MAX_CLAIMS_DEFAULT`, `CORS_ALLOW_ORIGIN`, `EVIDENCE_BUCKET_NAME`, `EVIDENCE_CORPUS_KEY`, and `FALLBACK_EVIDENCE_KEY`. Lambda provides reserved `AWS_REGION` automatically at runtime.
+Deployment parameters keep backend runtime configuration explicit: `ANALYSES_TABLE_NAME`, `FACTLENS_USE_FALLBACK`, `FACTLENS_STORAGE_MODE`, `MAX_CLAIMS_DEFAULT`, `CORS_ALLOW_ORIGIN`, `EVIDENCE_BUCKET_NAME`, `EVIDENCE_CORPUS_KEY`, `FALLBACK_EVIDENCE_KEY`, `FACTLENS_SEARCH_MODE`, `FACTLENS_SEARCH_PROVIDER`, `FACTLENS_ALLOWED_SOURCE_DOMAINS`, and `FACTLENS_SEARCH_RESULT_LIMIT`. Lambda provides reserved `AWS_REGION` automatically at runtime.
 
 Use the deployed API URL for backend smoke checks after deployment.
 
@@ -66,6 +70,7 @@ Use the deployed API URL for backend smoke checks after deployment.
 - DynamoDB table: `factlens-analyses-dev`
 - Lambda function: `factlens-backend-api-dev`
 - Deployment artifact bucket: `factlens-dev-deploy-artifacts-069423016509-ap-northeast-2`
+- Search mode: `fallback` by default. Per-request `searchMode: "internet"` is supported when a search API key is configured.
 
 Frontend base URL:
 
@@ -79,6 +84,27 @@ Available endpoints:
 POST /analyze
 GET /analyses/{analysisId}
 ```
+
+## Internet Search Configuration
+
+Official-source internet search is optional and disabled by default unless a request sends `searchMode: "internet"` or `FACTLENS_SEARCH_MODE=internet` is configured.
+
+Supported search provider environment variables:
+
+```text
+BRAVE_SEARCH_API_KEY
+SERPAPI_API_KEY
+GOOGLE_SEARCH_API_KEY
+GOOGLE_SEARCH_ENGINE_ID
+```
+
+The backend only accepts results from allowed domains:
+
+```text
+docs.aws.amazon.com,aws.amazon.com,repost.aws
+```
+
+Do not commit real search API keys. Add them through Lambda environment variables or a secrets workflow.
 
 ## Backend API Contract
 

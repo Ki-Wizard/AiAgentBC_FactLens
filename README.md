@@ -66,6 +66,16 @@ POST /analyze
 GET /analyses/{analysisId}
 ```
 
+Internet official-source search is available through request body `searchMode: "internet"` when a search API key is configured on Lambda.
+
+```json
+{
+  "documentText": "AWS Lambda 함수는 최대 5분까지만 실행할 수 있다.",
+  "maxClaims": 3,
+  "searchMode": "internet"
+}
+```
+
 ## Next Steps
 
 1. 역할별 브랜치에서 작업을 시작합니다.

@@ -109,5 +109,8 @@ export function toJudgeEvidence(evidenceDocs) {
     category: evidence.category,
     summaryKo: evidence.summaryKo,
     evidenceText: evidence.evidenceText,
+    searchProvider: evidence.searchProvider,
+    searchQuery: evidence.searchQuery,
+    retrievedAt: evidence.retrievedAt,
   }));
 }

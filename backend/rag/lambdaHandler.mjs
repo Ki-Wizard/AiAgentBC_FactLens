@@ -1,9 +1,14 @@
 import { fallbackJudgeClaim, summarizeJudgments } from "./fallbackJudge.mjs";
+import { searchInternetEvidence } from "./internetSearchEvidence.mjs";
 import {
   loadEvidenceDocs,
   retrieveEvidence,
   toJudgeEvidence,
 } from "./retrieveEvidence.mjs";
+
+function shouldUseInternetSearch(input) {
+  return input.searchMode === "internet" || process.env.FACTLENS_SEARCH_MODE === "internet";
+}
 
 function jsonResponse(statusCode, body) {
   return {
@@ -55,17 +60,25 @@ export async function analyzeDocument(input) {
   const evidenceDocs = await loadEvidenceDocs();
   const maxClaims = input.maxClaims ?? 10;
   const claims = input.claims ?? extractClaimsFromText(input.documentText, maxClaims);
+  const useInternetSearch = shouldUseInternetSearch(input);
 
   const judgments = [];
   for (const claim of claims) {
-    const evidence = await retrieveEvidence(claim, {
+    const fallbackEvidence = await retrieveEvidence(claim, {
       evidenceDocs,
       limit: input.evidenceLimit ?? 3,
     });
+    const internetSearch = useInternetSearch
+      ? await searchInternetEvidence(claim, { limit: input.evidenceLimit ?? 3 })
+      : { provider: "disabled", query: null, results: [], disabledReason: null };
+    const evidence = internetSearch.results.length ? internetSearch.results : fallbackEvidence;
 
     // MVP fallback: deterministic judgment keeps the demo alive when Bedrock
     // Knowledge Bases or Bedrock Runtime permissions are not ready.
-    const judgment = fallbackJudgeClaim(claim, evidence.length ? evidence : evidenceDocs);
+    const judgment = fallbackJudgeClaim(
+      claim,
+      fallbackEvidence.length ? fallbackEvidence : evidenceDocs,
+    );
     judgments.push({
       ...judgment,
       evidence: toJudgeEvidence(evidence),

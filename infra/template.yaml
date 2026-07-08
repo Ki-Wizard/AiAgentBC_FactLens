@@ -49,6 +49,32 @@ Parameters:
     Type: String
     Default: fallback/evidence_docs.json
     Description: Current fallback evidence object key.
+  FactLensSearchMode:
+    Type: String
+    Default: fallback
+    AllowedValues:
+      - fallback
+      - internet
+    Description: Sets FACTLENS_SEARCH_MODE. Use internet to enable official-source web search when a search API key is configured.
+  FactLensSearchProvider:
+    Type: String
+    Default: auto
+    AllowedValues:
+      - auto
+      - brave
+      - serpapi
+      - google_cse
+    Description: Sets FACTLENS_SEARCH_PROVIDER for internet evidence search.
+  FactLensAllowedSourceDomains:
+    Type: String
+    Default: docs.aws.amazon.com,aws.amazon.com,repost.aws
+    Description: Comma-separated allowed domains for internet evidence results.
+  FactLensSearchResultLimit:
+    Type: Number
+    Default: 3
+    MinValue: 1
+    MaxValue: 5
+    Description: Maximum internet search results to include per claim.
 
 Globals:
   Function:
@@ -68,6 +94,10 @@ Globals:
         EVIDENCE_BUCKET_NAME: !Ref EvidenceBucketName
         EVIDENCE_CORPUS_KEY: !Ref EvidenceCorpusKey
         FALLBACK_EVIDENCE_KEY: !Ref FallbackEvidenceKey
+        FACTLENS_SEARCH_MODE: !Ref FactLensSearchMode
+        FACTLENS_SEARCH_PROVIDER: !Ref FactLensSearchProvider
+        FACTLENS_ALLOWED_SOURCE_DOMAINS: !Ref FactLensAllowedSourceDomains
+        FACTLENS_SEARCH_RESULT_LIMIT: !Ref FactLensSearchResultLimit
         NODE_OPTIONS: --enable-source-maps
 
 Metadata:
@@ -81,6 +111,10 @@ Metadata:
     EVIDENCE_BUCKET_NAME: Mapped from the EvidenceBucketName parameter.
     EVIDENCE_CORPUS_KEY: Mapped from the EvidenceCorpusKey parameter.
     FALLBACK_EVIDENCE_KEY: Mapped from the FallbackEvidenceKey parameter.
+    FACTLENS_SEARCH_MODE: Mapped from the FactLensSearchMode parameter.
+    FACTLENS_SEARCH_PROVIDER: Mapped from the FactLensSearchProvider parameter.
+    FACTLENS_ALLOWED_SOURCE_DOMAINS: Mapped from the FactLensAllowedSourceDomains parameter.
+    FACTLENS_SEARCH_RESULT_LIMIT: Mapped from the FactLensSearchResultLimit parameter.
 
 Resources:
   FactLensHttpApi:

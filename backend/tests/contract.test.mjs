@@ -91,6 +91,34 @@ test('request parser trims documentText and defaults maxClaims to 10', () => {
   });
 });
 
+test('request parser accepts internet search mode', () => {
+  const result = parseAnalyzeRequest(postEvent(JSON.stringify({
+    documentText: 'AWS Lambda runs code.',
+    maxClaims: 2,
+    searchMode: 'internet',
+  })));
+
+  assert.deepEqual(result, {
+    documentText: 'AWS Lambda runs code.',
+    maxClaims: 2,
+    searchMode: 'internet',
+  });
+});
+
+test('POST /analyze rejects invalid searchMode with INVALID_SEARCH_MODE', async () => {
+  const handler = createApiHandler({
+    analyzer: async () => ({ claims: [] }),
+  });
+
+  const response = await handler(postEvent(JSON.stringify({
+    documentText: 'AWS Lambda runs code.',
+    searchMode: 'web',
+  })));
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(parseResponse(response).error.code, 'INVALID_SEARCH_MODE');
+});
+
 test('handler injects analyzer and generates analysisId when analyzer returns non-uuid analysisId', async () => {
   const handler = createApiHandler({
     analyzer: async (input) => {

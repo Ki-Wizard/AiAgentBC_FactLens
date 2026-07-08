@@ -26,6 +26,7 @@ const ERROR_MESSAGES = Object.freeze({
   INVALID_DOCUMENT_TEXT: 'documentText must be a non-empty string.',
   INVALID_JSON: 'Request body must be valid JSON.',
   INVALID_MAX_CLAIMS: 'maxClaims must be an integer from 1 through 20.',
+  INVALID_SEARCH_MODE: 'searchMode must be either fallback or internet.',
 });
 
 export class RequestValidationError extends Error {
@@ -54,7 +55,16 @@ export function parseAnalyzeRequest(event) {
     throw new RequestValidationError('INVALID_MAX_CLAIMS');
   }
 
-  return { documentText, maxClaims };
+  const searchMode = payload.searchMode ?? undefined;
+  if (searchMode !== undefined && !['fallback', 'internet'].includes(searchMode)) {
+    throw new RequestValidationError('INVALID_SEARCH_MODE');
+  }
+
+  return {
+    documentText,
+    maxClaims,
+    ...(searchMode === undefined ? {} : { searchMode }),
+  };
 }
 
 export function parseJsonEventBody(event) {
