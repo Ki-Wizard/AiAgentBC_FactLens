@@ -80,6 +80,41 @@ a:hover {
   padding: 44px 0 64px;
 }
 
+.status-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.status-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 168px;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 15px 20px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-lg);
+  font-weight: 800;
+  backdrop-filter: blur(10px);
+}
+
+.status-card.loading {
+  color: var(--accent);
+  border-color: rgba(79, 70, 229, 0.28);
+}
+
+.status-card.success {
+  color: var(--supported);
+  border-color: rgba(5, 150, 105, 0.28);
+}
+
 /* ---------- Hero ---------- */
 .top-brand-bar {
   display: flex;
@@ -325,6 +360,7 @@ a:hover {
   color: var(--text-subtle);
   font-size: 0.86rem;
   font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  overflow-wrap: anywhere;
 }
 
 .lookup-row {
@@ -509,6 +545,40 @@ a:hover {
   color: var(--text-subtle);
   font-size: 0.82rem;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.empty-state {
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  min-height: 210px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 28px;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  text-align: center;
+}
+
+.empty-state svg {
+  color: var(--insufficient);
+}
+
+.empty-state h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.empty-state p {
+  max-width: 460px;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.detail-empty {
+  min-height: 320px;
 }
 
 /* ---------- Claim item ---------- */
