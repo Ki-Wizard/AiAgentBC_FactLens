@@ -72,7 +72,7 @@ Selected backend hardening from `feature/backend-api` is reflected in code:
 - `MAX_CLAIMS_DEFAULT` environment default
 - `GET /analyses/{analysisId}` path parameter handling
 - Failed analysis persistence with `status: "FAILED"`
-- Raw input archive support through the pending `InputArchiveBucket` stack update
+- Raw input archive support through `InputArchiveBucket`
 
 Internet official-source search is available through request body `searchMode: "internet"` when a search API key is configured on Lambda.
 

@@ -71,12 +71,15 @@ Use the deployed API URL for backend smoke checks after deployment.
 - Lambda function: `factlens-backend-api-dev`
 - Deployment artifact bucket: `factlens-dev-deploy-artifacts-069423016509-ap-northeast-2`
 - Search mode: `fallback` by default. Per-request `searchMode: "internet"` is supported when a search API key is configured.
+- Input archive bucket: `factlens-input-archive-dev-069423016509-ap-northeast-2`
 
-Pending redeploy note:
+Selected backend hardening deployed:
 
-- Backend code now includes selected changes from `origin/feature/backend-api`: CORS preflight handling, analyzer failure persistence, path parameter handling, and raw input archive support.
-- `infra/template.yaml` includes the new `InputArchiveBucket` resource and `s3:PutObject` permission.
-- These selected changes have passed local tests but still need a CloudFormation stack update before `InputArchiveBucketName` appears in deployed Outputs.
+- CORS preflight handling
+- Analyzer failure persistence
+- GET path parameter handling
+- Raw input archive support
+- `InputArchiveBucketName` CloudFormation output
 
 Frontend base URL:
 
@@ -144,7 +147,7 @@ Every stored analysis and fixture claim uses these fields:
 - Current evidence bucket: `factlens-dev-evidence-docs-069423016509-ap-northeast-2`
 - Evidence corpus key: `source-docs/aws-evidence-corpus.md`
 - Fallback S3 key: `fallback/evidence_docs.json`
-- Raw input archive bucket: created by the `InputArchiveBucket` CloudFormation resource after the next backend stack update
+- Raw input archive bucket: `factlens-input-archive-dev-069423016509-ap-northeast-2`
 
 Warning: `factlens-rag-evidence-069423016509-ap-northeast-2` was created incorrectly. do not use it.
 
