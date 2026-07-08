@@ -96,9 +96,20 @@ CloudFront distribution: EKX7XE322XUAZ
 
 Deployment notes are tracked in [프론트엔드 S3 CloudFront 배포 기록](docs/프론트엔드_S3_CloudFront_배포_기록.md).
 
-## Next Steps
+## Current Integration Notes
 
-1. 역할별 브랜치에서 작업을 시작합니다.
-2. 프론트엔드, 백엔드, RAG 담당은 `docs/api-contract.md`의 응답 스키마를 기준으로 개발합니다.
-3. Data/Demo 담당은 `sample-data/evidence_docs.json`과 `sample-data/sample_wrong_aws_deck.md`를 먼저 채웁니다.
-4. 다른 담당 폴더는 직접 수정하지 않는 것을 원칙으로 합니다.
+1. `origin/main` now contains the backend/RAG baseline and the React frontend MVP.
+2. Presentation/demo notes live on `feature/demo-docs` and should describe implemented fallback RAG separately from Bedrock/Knowledge Bases extension work.
+3. Bedrock Knowledge Bases and Bedrock model judging remain extension points unless a later branch documents a completed sync/model smoke test.
+
+## Demo Assets
+
+- Demo input: `sample-data/sample_wrong_aws_deck.md`
+- Expected result/mock response: `sample-data/expected-results/analyze-success.json`
+- Bedrock failure fallback response: `sample-data/expected-results/bedrock-fallback.json`
+- Fallback evidence data: `sample-data/evidence_docs.json`
+- Demo flow: `docs/demo-scenario.md`
+- Presentation outline: `docs/presentation-outline.md`
+- Presentation script: `docs/presentation-script.md`
+- Q&A: `docs/qna.md`
+- Git workflow: `docs/git-workflow.md`
