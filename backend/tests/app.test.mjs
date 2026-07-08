@@ -99,6 +99,118 @@ test('app: GET /analyses/{analysisId} returns ANALYSIS_NOT_FOUND for unknown val
   });
 });
 
+test('app: GET /analyses/{analysisId} accepts pathParameters analysisId', async () => {
+  const storage = createMemoryStorage();
+  await storage.putAnalysis({
+    analysisId: ANALYSIS_ID,
+    status: 'COMPLETED',
+    summary: {
+      totalClaims: 0,
+      supported: 0,
+      conflicted: 0,
+      insufficient: 0,
+      exaggerated: 0,
+    },
+    claims: [],
+  });
+
+  const handler = createApiHandler({
+    storage,
+    analyzer: async () => {
+      throw new Error('GET should not call analyzer');
+    },
+  });
+
+  const response = await handler({
+    requestContext: {
+      http: {
+        method: 'GET',
+      },
+    },
+    pathParameters: {
+      analysisId: ANALYSIS_ID,
+    },
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(parseResponse(response), {
+    analysisId: ANALYSIS_ID,
+    status: 'COMPLETED',
+    summary: {
+      totalClaims: 0,
+      supported: 0,
+      conflicted: 0,
+      insufficient: 0,
+      exaggerated: 0,
+    },
+    claims: [],
+  });
+});
+
+test('app: OPTIONS returns preflight headers', async () => {
+  const originalAllowOrigin = process.env.CORS_ALLOW_ORIGIN;
+  process.env.CORS_ALLOW_ORIGIN = 'http://localhost:5173';
+  const handler = createApiHandler({
+    storage: createMemoryStorage(),
+    analyzer: async () => ({ claims: [] }),
+  });
+
+  try {
+    const response = await handler({
+      version: '2.0',
+      routeKey: 'OPTIONS /analyze',
+      rawPath: '/analyze',
+      requestContext: {
+        http: {
+          method: 'OPTIONS',
+          path: '/analyze',
+        },
+      },
+      headers: {
+        origin: 'http://localhost:5173',
+      },
+    });
+
+    assert.equal(response.statusCode, 204);
+    assert.equal(response.headers['Access-Control-Allow-Origin'], 'http://localhost:5173');
+    assert.equal(response.headers['Access-Control-Allow-Methods'], 'GET, POST, OPTIONS');
+  } finally {
+    if (originalAllowOrigin == null) {
+      delete process.env.CORS_ALLOW_ORIGIN;
+    } else {
+      process.env.CORS_ALLOW_ORIGIN = originalAllowOrigin;
+    }
+  }
+});
+
+test('app: POST /analyze stores FAILED result when analyzer throws', async () => {
+  const storage = createMemoryStorage();
+  const handler = createApiHandler({
+    storage,
+    analyzer: async () => {
+      throw new Error('forced analyzer failure');
+    },
+  });
+
+  const response = await handler(postEvent(JSON.stringify({
+    documentText: 'AWS Lambda runs code.',
+    maxClaims: 1,
+  })));
+  const body = parseResponse(response);
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(body.status, 'FAILED');
+  assert.deepEqual(body.summary, {
+    totalClaims: 0,
+    supported: 0,
+    conflicted: 0,
+    insufficient: 0,
+    exaggerated: 0,
+  });
+  assert.equal(body.errorMessage, 'forced analyzer failure');
+  assert.deepEqual(await storage.getAnalysis(body.analysisId), body);
+});
+
 function postEvent(body) {
   return {
     version: '2.0',

@@ -19,9 +19,7 @@ export class InvalidAnalysisResponseError extends Error {
 export function jsonResponse(statusCode, body) {
   return {
     statusCode,
-    headers: {
-      'content-type': 'application/json',
-    },
+    headers: jsonHeaders(),
     body: JSON.stringify(body),
   };
 }
@@ -30,6 +28,32 @@ export function errorResponse(statusCode, code, message) {
   return jsonResponse(statusCode, {
     error: { code, message },
   });
+}
+
+export function optionsResponse() {
+  const headers = jsonHeaders();
+  headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS';
+  headers['Access-Control-Max-Age'] = '600';
+  return {
+    statusCode: 204,
+    headers,
+    body: '',
+  };
+}
+
+function jsonHeaders() {
+  const allowOrigin = process.env.CORS_ALLOW_ORIGIN;
+  const headers = {
+    'content-type': 'application/json',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Amz-Date, X-Api-Key, X-Amz-Security-Token',
+  };
+
+  if (typeof allowOrigin === 'string' && allowOrigin.trim() !== '') {
+    headers['Access-Control-Allow-Origin'] = allowOrigin.trim();
+    headers.Vary = 'Origin';
+  }
+
+  return headers;
 }
 
 export function normalizeAnalysisResponse(rawAnalysis) {

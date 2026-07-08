@@ -66,6 +66,14 @@ POST /analyze
 GET /analyses/{analysisId}
 ```
 
+Selected backend hardening from `feature/backend-api` is reflected in code:
+
+- CORS `OPTIONS` preflight handling
+- `MAX_CLAIMS_DEFAULT` environment default
+- `GET /analyses/{analysisId}` path parameter handling
+- Failed analysis persistence with `status: "FAILED"`
+- Raw input archive support through the pending `InputArchiveBucket` stack update
+
 Internet official-source search is available through request body `searchMode: "internet"` when a search API key is configured on Lambda.
 
 ```json
