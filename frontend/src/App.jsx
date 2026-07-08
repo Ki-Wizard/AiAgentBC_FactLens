@@ -1,6 +1,6 @@
 import React from "react";
-import { AlertTriangle, CheckCircle2, FileSearch, Loader2, Search, ShieldQuestion } from "lucide-react";
-import { useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, FileSearch, Loader2, Search, UploadCloud, X } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import {
   getClaimKey,
   getClaimText,
@@ -10,10 +10,9 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
-const sampleInput = `Amazon Bedrock은 고객 데이터를 자동으로 모델 학습에 사용한다.
-AWS Lambda 함수는 최대 15분까지 실행할 수 있다.
-Amazon S3는 높은 내구성을 제공하도록 설계되어 있지만, 명확한 SLA를 보장하지 않습니다.
-Amazon Bedrock은 무조건 모든 고객이 일관된 결과를 얻을 수 있음을 100% 보장한다.`;
+const MAX_UPLOAD_BYTES = 12 * 1024 * 1024;
+const MAX_UPLOAD_MB = 12;
+const UPLOAD_ACCEPT_TYPES = ".txt,.md,.json,.csv,.pdf,.ppt,.pptx";
 
 const mockResult = {
   analysisId: "analysis-mock-001",
@@ -28,11 +27,11 @@ const mockResult = {
   claims: [
     {
       claimId: "claim-001",
-      text: "Amazon Bedrock은 고객 데이터를 자동으로 모델 학습에 사용한다.",
-      label: "공식 근거와 충돌",
+      text: "Amazon Bedrock uses customer data to train the base model by default.",
+      label: "Conflicts with official sources",
       confidence: 0.91,
-      reason: "공식 근거는 Amazon Bedrock이 고객 콘텐츠를 기본 모델 학습에 사용하지 않는다고 설명한다.",
-      correctedText: "Amazon Bedrock은 고객 콘텐츠를 기본 모델 학습에 사용하지 않는다.",
+      reason: "Official documentation says Amazon Bedrock does not use customer content to train a base model by default.",
+      correctedText: "Amazon Bedrock does not use customer content to train the base model by default.",
       sources: [
         {
           title: "Amazon Bedrock data protection",
@@ -43,11 +42,11 @@ const mockResult = {
     },
     {
       claimId: "claim-002",
-      text: "AWS Lambda 함수는 최대 15분까지 실행할 수 있다.",
-      label: "근거 있음",
+      text: "AWS Lambda functions can run up to 15 minutes.",
+      label: "Supported",
       confidence: 0.94,
-      reason: "검색된 공식 AWS 문서가 Lambda 함수의 실행 시간 제한 정보와 일치한다.",
-      correctedText: "수정이 필요하지 않다.",
+      reason: "AWS service limits confirm the runtime configuration for Lambda functions.",
+      correctedText: "No correction needed.",
       sources: [
         {
           title: "AWS Lambda quotas",
@@ -58,11 +57,11 @@ const mockResult = {
     },
     {
       claimId: "claim-003",
-      text: "Amazon S3는 높은 내구성을 제공하도록 설계되어 있지만, 명확한 SLA를 보장하지 않습니다.",
-      label: "근거 부족",
+      text: "Amazon S3 is designed for high durability but does not explicitly guarantee SLA in the public docs.",
+      label: "Insufficient evidence",
       confidence: 0.73,
-      reason: "해당 claim의 SLA 보장 여부를 직접 확인할 충분한 근거가 검색 결과에 없다.",
-      correctedText: "Amazon S3의 내구성 및 SLA 정보는 공식 문서에서 확인할 수 있다.",
+      reason: "No direct evidence in the indexed sources confirms the claim's SLA guarantee statement.",
+      correctedText: "SLA and durability details should be verified directly in the official documentation.",
       sources: [
         {
           title: "Amazon S3 FAQs",
@@ -73,11 +72,11 @@ const mockResult = {
     },
     {
       claimId: "claim-004",
-      text: "Amazon Bedrock은 무조건 모든 고객이 일관된 결과를 얻을 수 있음을 100% 보장한다.",
-      label: "과장 표현",
+      text: "Amazon Bedrock guarantees perfect, identical results for every customer 100% of the time.",
+      label: "Exaggerated",
       confidence: 0.85,
-      reason: "'무조건', '100% 보장' 같은 절대적 표현은 공식 문서의 신중한 표현보다 강한 과장이다.",
-      correctedText: "Amazon Bedrock은 일관된 결과 제공을 돕는 기능을 제공하지만, 결과를 100% 보장한다고 표현하지 않는다.",
+      reason: "Absolute wording like 'guarantees' and '100% consistent' overstates the product capability.",
+      correctedText: "Amazon Bedrock improves consistency, but the service does not state a 100% guarantee of identical results.",
       sources: [
         {
           title: "Amazon Bedrock User Guide",
@@ -92,22 +91,22 @@ const mockResult = {
 const fallbackResult = normalizeAnalysisResult(mockResult);
 
 const labelMeta = {
-  "근거 있음": {
+  Supported: {
     className: "label-supported",
     tone: "supported",
     icon: CheckCircle2,
   },
-  "공식 근거와 충돌": {
+  "Conflicts with official sources": {
     className: "label-conflicted",
     tone: "conflicted",
     icon: AlertTriangle,
   },
-  "근거 부족": {
+  "Insufficient evidence": {
     className: "label-insufficient",
     tone: "insufficient",
-    icon: ShieldQuestion,
+    icon: Search,
   },
-  "과장 표현": {
+  Exaggerated: {
     className: "label-exaggerated",
     tone: "exaggerated",
     icon: AlertTriangle,
@@ -115,7 +114,7 @@ const labelMeta = {
 };
 
 function getLabelMeta(label) {
-  return labelMeta[label] || labelMeta["근거 부족"];
+  return labelMeta[label] || labelMeta["Insufficient evidence"];
 }
 
 function getSources(claim) {
@@ -148,13 +147,15 @@ function ClaimBadge({ label }) {
 }
 
 function App() {
-  const [inputText, setInputText] = useState(sampleInput);
   const [analysis, setAnalysis] = useState(fallbackResult);
   const [selectedClaimKey, setSelectedClaimKey] = useState(getClaimKey(fallbackResult.claims[0], 0));
   const [lookupId, setLookupId] = useState(fallbackResult.analysisId);
-  const [searchMode, setSearchMode] = useState("fallback");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadedText, setUploadedText] = useState("");
+  const [isDragActive, setIsDragActive] = useState(false);
+  const fileInputRef = useRef(null);
 
   const selectedClaim = useMemo(() => {
     return (
@@ -170,15 +171,81 @@ function App() {
     setLookupId(normalizedResult.analysisId || "");
   };
 
-  const analyzeText = async () => {
-    setIsLoading(true);
+  const handleUploadFile = async (file) => {
     setErrorMessage("");
 
-    if (!inputText.trim()) {
-      setErrorMessage("분석할 텍스트를 입력하세요.");
-      setIsLoading(false);
+    if (!file) {
+      setUploadedFile(null);
+      setUploadedText("");
       return;
     }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setErrorMessage(`Upload size is limited to ${MAX_UPLOAD_MB}MB.`);
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      setUploadedFile(file);
+      setUploadedText(text);
+    } catch (error) {
+      console.error("[FactLens] Failed to parse uploaded file.", error);
+      setErrorMessage("Unable to read this file. Upload a text-based document.");
+      setUploadedFile(file);
+      setUploadedText("");
+    }
+  };
+
+  const onUploadChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    void handleUploadFile(file);
+  };
+
+  const onDragOver = (event) => {
+    event.preventDefault();
+    setIsDragActive(true);
+  };
+
+  const onDrop = (event) => {
+    event.preventDefault();
+    setIsDragActive(false);
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) {
+      return;
+    }
+    void handleUploadFile(file);
+  };
+
+  const onDragLeave = () => {
+    setIsDragActive(false);
+  };
+
+  const clearUploadedFile = () => {
+    setUploadedFile(null);
+    setUploadedText("");
+    setErrorMessage("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const analyzeUploadedFile = async () => {
+    if (!uploadedFile) {
+      setErrorMessage("Select a file first.");
+      return;
+    }
+
+    if (!uploadedText.trim()) {
+      setErrorMessage("No readable text found in the uploaded file.");
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage("");
 
     if (!API_BASE_URL) {
       window.setTimeout(() => {
@@ -192,17 +259,17 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentText: inputText, maxClaims: 10, searchMode }),
+        body: JSON.stringify({ documentText: uploadedText, maxClaims: 10, searchMode: "fallback" }),
       });
 
       if (!response.ok) {
-        throw new Error(`분석 API 오류: HTTP ${response.status}`);
+        throw new Error(`Analysis API error: HTTP ${response.status}`);
       }
 
       const result = await response.json();
       applyAnalysis(result);
     } catch (error) {
-      console.error("[FactLens] POST /analyze failed. Rendering fallback result.", error);
+      console.error("[FactLens] POST /analyze with uploaded file failed. Rendering fallback result.", error);
       applyAnalysis(fallbackResult);
     } finally {
       setIsLoading(false);
@@ -214,7 +281,7 @@ function App() {
     setErrorMessage("");
 
     if (!lookupId.trim()) {
-      setErrorMessage("조회할 analysisId를 입력하세요.");
+      setErrorMessage("Enter analysisId to look up.");
       setIsLoading(false);
       return;
     }
@@ -231,7 +298,7 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/analyses/${encodeURIComponent(lookupId.trim())}`);
 
       if (!response.ok) {
-        throw new Error(`분석 조회 API 오류: HTTP ${response.status}`);
+        throw new Error(`Lookup API error: HTTP ${response.status}`);
       }
 
       const result = await response.json();
@@ -246,48 +313,62 @@ function App() {
 
   return (
     <main className="app-shell">
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <div className="brand-row">
-            <FileSearch size={28} aria-hidden="true" />
-            <span>FactLens</span>
-          </div>
-          <h1>발표자료와 보고서 속 주장을 근거와 대조합니다.</h1>
-          <p className="hero-sub">
-            문장 단위로 claim을 추출하고 공식 문서와 자동 대조해, 근거·충돌·과장을 한눈에
-            보여드립니다.
-          </p>
+      <section className="top-brand-bar">
+        <div className="brand-mark">
+          <FileSearch size={22} aria-hidden="true" />
+          <span>FactLens</span>
         </div>
-        <div className="input-panel">
-          <textarea
-            value={inputText}
-            onChange={(event) => setInputText(event.target.value)}
-            placeholder="검증할 발표자료 문장 또는 보고서 텍스트를 붙여넣으세요."
-            rows={8}
+      </section>
+
+      <section className="hero-panel">
+        <label
+          htmlFor="presentation-upload-input"
+          className={`upload-panel ${isDragActive ? "drag-active" : ""} ${uploadedFile ? "has-file" : ""}`}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          onDragLeave={onDragLeave}
+        >
+          <p className="upload-kicker">발표자료 업로드</p>
+          <h1>발표자료를 올리고 AI 팩트체크를 시작하세요</h1>
+          <p className="hero-sub">
+            발표자료 파일을 여기로 끌어다 두거나 아래 버튼으로 선택하면 텍스트를 추출해 분석을 시작합니다.
+          </p>
+          <input
+            id="presentation-upload-input"
+            ref={fileInputRef}
+            type="file"
+            className="upload-input"
+            accept={UPLOAD_ACCEPT_TYPES}
+            onChange={onUploadChange}
           />
-          <div className="input-actions">
-            <button type="button" onClick={analyzeText} disabled={isLoading}>
-              {isLoading ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
-              분석 시작
+          <div className="upload-dropzone">
+            <UploadCloud size={30} aria-hidden="true" />
+            <div>영역 위에 끌어 놓거나 버튼으로 선택하세요.</div>
+            <button
+              type="button"
+              className="button-upload"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              파일 선택
             </button>
-            <div className="mode-toggle" role="group" aria-label="근거 검색 모드">
-              <button
-                type="button"
-                className={searchMode === "fallback" ? "active" : ""}
-                onClick={() => setSearchMode("fallback")}
-                disabled={isLoading}
-              >
-                저장 근거
-              </button>
-              <button
-                type="button"
-                className={searchMode === "internet" ? "active" : ""}
-                onClick={() => setSearchMode("internet")}
-                disabled={isLoading}
-              >
-                실시간 검색
+            <small>지원 형식: txt / md / json / csv / pdf / ppt / pptx</small>
+            <small>최대 용량: {MAX_UPLOAD_MB}MB</small>
+          </div>
+          {uploadedFile && (
+            <div className="uploaded-file-row">
+              <span className="uploaded-file-name">{uploadedFile.name}</span>
+              <button type="button" className="uploaded-file-clear" onClick={clearUploadedFile}>
+                <X size={14} aria-hidden="true" />
+                삭제
               </button>
             </div>
+          )}
+          <div className="input-actions">
+            <button type="button" onClick={analyzeUploadedFile} disabled={isLoading || !uploadedFile}>
+              {isLoading ? <Loader2 className="spin" size={18} /> : <UploadCloud size={18} />}
+              업로드 파일 분석
+            </button>
             <span>POST /analyze</span>
           </div>
           <div className="lookup-row">
@@ -295,31 +376,31 @@ function App() {
               type="text"
               value={lookupId}
               onChange={(event) => setLookupId(event.target.value)}
-              placeholder="analysisId로 기존 결과 조회"
+              placeholder="Lookup by analysisId"
             />
             <button type="button" onClick={loadAnalysis} disabled={isLoading}>
-              결과 조회
+              Load result
             </button>
             <span>GET /analyses/&#123;analysisId&#125;</span>
           </div>
           {errorMessage && <p className="error-text">{errorMessage}</p>}
-        </div>
+        </label>
       </section>
 
       {analysis && (
         <>
-          <section className="summary-grid" aria-label="분석 요약">
-            <SummaryCard title="전체 claim" value={analysis.summary.totalClaims} tone="total" />
-            <SummaryCard title="근거 있음" value={analysis.summary.supported} tone="supported" />
-            <SummaryCard title="충돌" value={analysis.summary.conflicted} tone="conflicted" />
-            <SummaryCard title="근거 부족" value={analysis.summary.insufficient} tone="insufficient" />
-            <SummaryCard title="과장" value={analysis.summary.exaggerated} tone="exaggerated" />
+          <section className="summary-grid">
+            <SummaryCard title="Total claims" value={analysis.summary.totalClaims} tone="total" />
+            <SummaryCard title="Supported" value={analysis.summary.supported} tone="supported" />
+            <SummaryCard title="Conflicts" value={analysis.summary.conflicted} tone="conflicted" />
+            <SummaryCard title="Insufficient" value={analysis.summary.insufficient} tone="insufficient" />
+            <SummaryCard title="Exaggerated" value={analysis.summary.exaggerated} tone="exaggerated" />
           </section>
 
           <section className="result-layout">
-            <div className="claim-list" aria-label="claim 결과 목록">
+            <div className="claim-list">
               <div className="section-heading">
-                <h2>검증 결과</h2>
+                <h2>Analysis result</h2>
                 <span>{analysis.analysisId}</span>
               </div>
               {analysis.claims.map((claim, index) => {
@@ -329,14 +410,12 @@ function App() {
                     type="button"
                     key={getClaimKey(claim, index)}
                     data-tone={getLabelMeta(claim.label).tone}
-                    className={`claim-item ${
-                      getClaimKey(claim, index) === selectedClaimKey ? "active" : ""
-                    }`}
+                    className={`claim-item ${getClaimKey(claim, index) === selectedClaimKey ? "active" : ""}`}
                     onClick={() => setSelectedClaimKey(getClaimKey(claim, index))}
                   >
                     <div className="claim-item-top">
                       <ClaimBadge label={claim.label} />
-                      <span className="confidence">신뢰도 {percent}%</span>
+                      <span className="confidence">Confidence {percent}%</span>
                     </div>
                     <span className="claim-text">{getClaimText(claim)}</span>
                     <div className="confidence-bar">
@@ -347,17 +426,13 @@ function App() {
               })}
             </div>
 
-            <aside
-              className="detail-panel"
-              data-tone={selectedClaim ? getLabelMeta(selectedClaim.label).tone : undefined}
-              aria-label="선택 claim 상세 정보"
-            >
+            <aside className="detail-panel" data-tone={selectedClaim ? getLabelMeta(selectedClaim.label).tone : undefined}>
               {selectedClaim ? (
                 <>
                   <div className="detail-head">
                     <ClaimBadge label={selectedClaim.label} />
                     <span className="detail-confidence">
-                      신뢰도 {Math.round(selectedClaim.confidence * 100)}%
+                      Confidence {Math.round(selectedClaim.confidence * 100)}%
                     </span>
                   </div>
                   <h2>{getClaimText(selectedClaim)}</h2>
@@ -365,15 +440,15 @@ function App() {
                     <span style={{ width: `${Math.round(selectedClaim.confidence * 100)}%` }} />
                   </div>
                   <div className="detail-block">
-                    <h3>판정 이유</h3>
+                    <h3>Reason</h3>
                     <p>{selectedClaim.reason}</p>
                   </div>
                   <div className="detail-block">
-                    <h3>수정 제안</h3>
+                    <h3>Correction</h3>
                     <p>{selectedClaim.correctedText}</p>
                   </div>
                   <div className="detail-block">
-                    <h3>근거 출처</h3>
+                    <h3>Sources</h3>
                     <ul className="source-list">
                       {getSources(selectedClaim).map((source) => (
                         <li key={`${getClaimText(selectedClaim)}-${getSourceTarget(source)}`}>
@@ -393,7 +468,7 @@ function App() {
                   </div>
                 </>
               ) : (
-                <p>왼쪽에서 claim을 선택하세요.</p>
+                <p>Select a claim on the left.</p>
               )}
             </aside>
           </section>
