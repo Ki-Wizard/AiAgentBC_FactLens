@@ -184,10 +184,10 @@ function judgeFromInternetEvidence(claim, internetEvidence) {
 
 export function fallbackJudgeClaim(claim, evidenceDocs) {
   const text = claim.text ?? "";
-  const internetJudgment = judgeFromInternetEvidence(
-    claim,
-    evidenceDocs.filter((evidence) => evidence.sourceType === "internet_search"),
+  const searchableEvidence = evidenceDocs.filter(
+    (evidence) => evidence.sourceType === "internet_search" || evidence.sourceType === "bedrock_knowledge_base",
   );
+  const internetJudgment = judgeFromInternetEvidence(claim, searchableEvidence);
   if (internetJudgment) {
     return internetJudgment;
   }

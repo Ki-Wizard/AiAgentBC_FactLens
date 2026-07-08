@@ -1,3 +1,4 @@
+import { bedrockJudgeClaim } from "./bedrockJudge.mjs";
 import { fallbackJudgeClaim, summarizeJudgments } from "./fallbackJudge.mjs";
 import { searchInternetEvidence } from "./internetSearchEvidence.mjs";
 import { retrieveKnowledgeBaseEvidence } from "./knowledgeBaseRetrieve.mjs";
@@ -53,23 +54,31 @@ function extractClaimsFromText(documentText, maxClaims = 10) {
 }
 
 export async function analyzeDocument(input) {
-  const evidenceDocs = await loadEvidenceDocs();
+  let evidenceDocs = [];
+  try {
+    evidenceDocs = await loadEvidenceDocs();
+  } catch {
+    // KB is primary source; local corpus is optional fallback
+  }
   const maxClaims = input.maxClaims ?? 10;
   const claims = input.claims ?? extractClaimsFromText(input.documentText, maxClaims);
   const useInternetSearch = shouldUseInternetSearch(input);
 
   const judgments = [];
   for (const claim of claims) {
-    const fallbackEvidence = await retrieveEvidence(claim, {
-      evidenceDocs,
-      limit: input.evidenceLimit ?? 3,
-    });
     const knowledgeBaseSearch = await retrieveKnowledgeBaseEvidence(claim, {
       limit: input.evidenceLimit ?? 5,
     });
     const internetSearch = useInternetSearch
       ? await searchInternetEvidence(claim, { limit: input.evidenceLimit ?? 3 })
       : { provider: "disabled", query: null, results: [], disabledReason: null };
+    let fallbackEvidence = [];
+    if (!knowledgeBaseSearch.results.length && !internetSearch.results.length && evidenceDocs.length) {
+      fallbackEvidence = await retrieveEvidence(claim, {
+        evidenceDocs,
+        limit: input.evidenceLimit ?? 3,
+      });
+    }
     const evidence = knowledgeBaseSearch.results.length
       ? knowledgeBaseSearch.results
       : internetSearch.results.length
@@ -77,12 +86,8 @@ export async function analyzeDocument(input) {
         : fallbackEvidence;
     const judgeEvidence = evidence.length ? evidence : evidenceDocs;
 
-    // MVP fallback: deterministic judgment keeps the demo alive when Bedrock
-    // Knowledge Bases or Bedrock Runtime permissions are not ready.
-    const judgment = fallbackJudgeClaim(
-      claim,
-      judgeEvidence,
-    );
+    const llmJudgment = evidence.length ? await bedrockJudgeClaim(claim, evidence) : null;
+    const judgment = llmJudgment ?? fallbackJudgeClaim(claim, judgeEvidence);
     judgments.push({
       ...judgment,
       evidence: toJudgeEvidence(evidence),

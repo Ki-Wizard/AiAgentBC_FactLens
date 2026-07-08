@@ -21,8 +21,18 @@ export async function analyzeDocument(input) {
 
   try {
     return await provider.analyzeDocument(input);
-  } catch {
-    return loadFallbackAnalysis();
+  } catch (err) {
+    try {
+      return await loadFallbackAnalysis();
+    } catch {
+      return {
+        analysisId: input.analysisId ?? `analysis-${Date.now()}`,
+        status: "COMPLETED",
+        summary: { totalClaims: 0, supported: 0, conflicted: 0, insufficient: 0, exaggerated: 0 },
+        claims: [],
+        errorMessage: `RAG analysis failed: ${err.message}`,
+      };
+    }
   }
 }
 
