@@ -27,6 +27,13 @@ factlens/
   README.md
 ```
 
+## Main Documents
+
+- [프로젝트 통합 문서](docs/팩트렌즈_프로젝트_통합_문서.md): Git 병합 기록, 체크리스트, AWS 기술, 사용 도구, 연결 흐름 정리
+- [API Contract](docs/api-contract.md): Backend, Frontend, RAG 공통 입출력 스키마
+- [Architecture](docs/architecture.md): 서비스 흐름과 AWS 아키텍처
+- [RAG Contract](docs/rag-contract.md): RAG 담당과 Backend 담당의 연결 규칙
+
 ## Fixed Labels
 
 프론트엔드 색상 처리와 백엔드/RAG 판정 결과는 아래 문자열을 그대로 사용합니다.
