@@ -28,7 +28,9 @@ function extractClaimsFromText(documentText, maxClaims = 10) {
   const sentences = String(documentText ?? "")
     .split(/(?<=[.!?。！？])\s+|\n+/)
     .map((sentence) => sentence.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((sentence) => !sentence.startsWith("#"))
+    .filter((sentence) => !/^이 문서는/.test(sentence));
 
   return sentences
     .filter((sentence) =>
