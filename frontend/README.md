@@ -16,21 +16,28 @@ npm run dev
 VITE_API_BASE_URL=https://your-api-id.execute-api.ap-northeast-2.amazonaws.com
 ```
 
+현재 서울 리전 배포 API:
+
+```bash
+VITE_API_BASE_URL=https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
+```
+
 값이 없거나 API 호출이 실패하면 발표 데모가 끊기지 않도록 fallback 결과를 실제 응답과 같은 화면 구조로 렌더링합니다.
 
 ## Responsibilities
 
+- PDF 업로드 UI
 - 텍스트 직접 입력 UI
-- PDF 업로드 UI는 시간이 되면 추가
 - 분석 진행 상태 표시
 - claim별 색상 판정 테이블
 - 근거 출처, 충돌 이유, 수정 제안 표시
 - `POST /analyze`, `GET /analyses/{analysisId}` 연동
 - `VITE_API_BASE_URL` 환경변수 기반 API 호출
+- 저장 근거 검색과 실시간 인터넷 검색 모드 선택
 
 ## Planned Screens
 
-- Text Input
+- Upload/Input
 - Analysis Progress
 - Result Report
 

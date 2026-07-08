@@ -12,13 +12,13 @@
 |------|------|---------|
 | POST /analyze | ✅ 완료 | [App.jsx:L177](src/App.jsx#L177) |
 | GET /analyses/{analysisId} | ✅ 완료 | [App.jsx](src/App.jsx) |
-| 요청 body: { documentText, maxClaims } | ✅ 완료 | [App.jsx:L182](src/App.jsx#L182) |
+| 요청 body: { documentText, maxClaims, searchMode } | ✅ 완료 | [App.jsx:L182](src/App.jsx#L182) |
 
 ### ✅ 요청/응답 필드 스키마
 
 **요청:**
 ```javascript
-{ documentText: "string", maxClaims: 10 }
+{ documentText: "string", maxClaims: 10, searchMode: "fallback" }
 ```
 
 **응답 필드 (claim 객체):**
@@ -143,11 +143,13 @@ analyze-success.json에 포함된 주장:
    - React import 추가
    - RAG 최신 스키마 기준 `claim.text` 우선 렌더링
    - 이전 `claim.claimText` 응답도 fallback 렌더링
-   - 요청 body: `{ text }` → `{ documentText, maxClaims }` 변경
+   - 요청 body: `{ text }` → `{ documentText, maxClaims, searchMode }` 변경
+   - 저장 근거/실시간 검색 모드 선택 추가
    - Mock data 필드명 일치
 
 2. **[src/styles.css](src/styles.css)**
-   - 검토 완료 (수정 없음)
+   - 검토 완료
+   - 검색 모드 토글 스타일 추가
    - 색상 매핑 정확함
 
 ---
@@ -162,13 +164,13 @@ analyze-success.json에 포함된 주장:
 - ✅ 문서화 완료
 - ✅ 앱 정상 작동 확인
 
-### Backend 팀 (체크 필요)
-- [ ] API endpoint 구현: POST /analyze
-- [ ] 요청 body 파싱: { documentText, maxClaims }
-- [ ] 응답 스키마 일치: text 포함
-- [ ] 4가지 label 반환 검증
-- [ ] sources: title, url 필수 포함
-- [ ] Lambda/DynamoDB/Bedrock 통합
+### Backend 팀
+- ✅ API endpoint 구현: POST /analyze
+- ✅ 요청 body 파싱: { documentText, maxClaims, searchMode }
+- ✅ 응답 스키마 일치: text 포함
+- ✅ 4가지 label 반환 검증
+- ✅ sources: title, url/uri 지원
+- ✅ Lambda/DynamoDB/RAG 통합
 
 ### Infra 팀 (체크 필요)
 - [ ] SAM 템플릿 작성
@@ -181,11 +183,11 @@ analyze-success.json에 포함된 주장:
 
 ## 🚀 다음 단계
 
-### 1. Backend API 개발
-Backend 팀이 다음을 구현:
-- POST /analyze 엔드포인트
-- Bedrock Knowledge Base 연결
-- DynamoDB 분석 결과 저장
+### 1. Backend API 연결
+현재 배포 API:
+```bash
+VITE_API_BASE_URL=https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
+```
 
 ### 2. 통합 테스트
 ```bash
@@ -195,7 +197,7 @@ VITE_API_BASE_URL=http://localhost:8000
 # Demo 입력으로 테스트
 curl -X POST http://localhost:8000/analyze \
   -H "Content-Type: application/json" \
-  -d '{"documentText":"Amazon Bedrock은 고객 데이터를 자동으로 모델 학습에 사용한다.","maxClaims":10}'
+  -d '{"documentText":"Amazon Bedrock은 고객 데이터를 자동으로 모델 학습에 사용한다.","maxClaims":10,"searchMode":"internet"}'
 ```
 
 ### 3. 배포 및 프로덕션화

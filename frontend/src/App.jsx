@@ -152,6 +152,7 @@ function App() {
   const [analysis, setAnalysis] = useState(fallbackResult);
   const [selectedClaimKey, setSelectedClaimKey] = useState(getClaimKey(fallbackResult.claims[0], 0));
   const [lookupId, setLookupId] = useState(fallbackResult.analysisId);
+  const [searchMode, setSearchMode] = useState("fallback");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -191,7 +192,7 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentText: inputText, maxClaims: 10 }),
+        body: JSON.stringify({ documentText: inputText, maxClaims: 10, searchMode }),
       });
 
       if (!response.ok) {
@@ -269,6 +270,24 @@ function App() {
               {isLoading ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
               분석 시작
             </button>
+            <div className="mode-toggle" role="group" aria-label="근거 검색 모드">
+              <button
+                type="button"
+                className={searchMode === "fallback" ? "active" : ""}
+                onClick={() => setSearchMode("fallback")}
+                disabled={isLoading}
+              >
+                저장 근거
+              </button>
+              <button
+                type="button"
+                className={searchMode === "internet" ? "active" : ""}
+                onClick={() => setSearchMode("internet")}
+                disabled={isLoading}
+              >
+                실시간 검색
+              </button>
+            </div>
             <span>POST /analyze</span>
           </div>
           <div className="lookup-row">

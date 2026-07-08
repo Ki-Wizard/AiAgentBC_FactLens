@@ -9,9 +9,12 @@
 ```json
 {
   "documentText": "전체 문서 텍스트",
-  "maxClaims": 10
+  "maxClaims": 10,
+  "searchMode": "fallback"
 }
 ```
+
+`searchMode`는 `fallback` 또는 `internet`을 보낼 수 있습니다. `internet`은 Lambda에 검색 API 키가 설정된 경우 공식 출처 웹 검색을 먼저 시도하고, 실패하면 저장 근거로 fallback합니다.
 
 **Response:**
 ```json
@@ -147,7 +150,8 @@ analyzeDocument(input)
 ```json
 {
   "documentText": "AWS Lambda 함수는 최대 5분까지만 실행할 수 있다.",
-  "maxClaims": 10
+  "maxClaims": 10,
+  "searchMode": "fallback"
 }
 ```
 
@@ -196,6 +200,7 @@ factlens-rag-evidence-069423016509-ap-northeast-2
 
 ### 입력 화면
 - 텍스트 입력 영역: 사용자가 분석할 문서 텍스트 붙여넣기
+- 근거 검색 모드: 저장 근거 또는 실시간 검색 선택
 - "분석 시작" 버튼: POST /analyze 호출
 - 로딩 상태 표시
 - 에러 메시지 표시

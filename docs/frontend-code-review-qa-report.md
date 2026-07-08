@@ -26,7 +26,7 @@ Frontend는 현재 발표 데모 기준으로 동작 가능한 상태입니다. 
 확인한 기능:
 
 - `POST /analyze` 호출 구현
-- 요청 body `{ documentText, maxClaims }` 사용
+- 요청 body `{ documentText, maxClaims, searchMode }` 사용
 - `GET /analyses/{analysisId}` 조회 UI 구현
 - RAG 최신 claim schema인 `text`, `label`, `confidence`, `reason`, `correctedText`, `sources[].title`, `sources[].url` 또는 `sources[].uri`, `evidence` 반영
 - 이전 `claimText` 응답도 fallback 렌더링
