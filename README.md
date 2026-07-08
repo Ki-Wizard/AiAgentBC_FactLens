@@ -47,7 +47,7 @@ factlens/
 
 ## Planned AWS Stack
 
-- Frontend hosting: S3
+- Frontend hosting: S3 + CloudFront
 - API: API Gateway
 - Compute: Lambda
 - Model/RAG: Bedrock, Bedrock Knowledge Bases
@@ -83,6 +83,18 @@ Internet official-source search is available through request body `searchMode: "
   "searchMode": "internet"
 }
 ```
+
+## Current Frontend Web
+
+Frontend is deployed with S3 private origin and CloudFront.
+
+```text
+Web URL: https://d26fxwkgccjdap.cloudfront.net
+S3 bucket: factlens-frontend-dev-069423016509-ap-northeast-2
+CloudFront distribution: EKX7XE322XUAZ
+```
+
+Deployment notes are tracked in [프론트엔드 S3 CloudFront 배포 기록](docs/프론트엔드_S3_CloudFront_배포_기록.md).
 
 ## Next Steps
 

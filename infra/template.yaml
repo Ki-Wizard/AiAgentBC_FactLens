@@ -35,8 +35,8 @@ Parameters:
     Description: Sets MAX_CLAIMS_DEFAULT for request validation.
   CorsAllowOrigin:
     Type: String
-    Default: http://localhost:5173
-    Description: Sets CORS_ALLOW_ORIGIN and API Gateway CORS origin.
+    Default: https://d26fxwkgccjdap.cloudfront.net
+    Description: Sets CORS_ALLOW_ORIGIN and primary API Gateway CORS origin.
   EvidenceBucketName:
     Type: String
     Default: factlens-dev-evidence-docs-069423016509-ap-northeast-2
@@ -128,6 +128,7 @@ Resources:
       CorsConfiguration:
         AllowOrigins:
           - !Ref CorsAllowOrigin
+          - http://localhost:5173
         AllowHeaders:
           - Content-Type
           - Authorization
