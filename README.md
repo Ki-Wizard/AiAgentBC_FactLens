@@ -2,42 +2,91 @@
 
 AWS/AI 발표자료 속 주장을 공식 근거와 대조해 오류, 과장, 근거 부족을 잡아내는 RAG 기반 검증 서비스입니다.
 
-## 핵심 아이디어
+## MVP Agreement
 
-사용자가 PDF 또는 텍스트를 업로드하면 FactLens가 핵심 claim을 추출하고, Amazon Bedrock Knowledge Bases에 저장된 AWS 공식문서/강의자료/기술문서와 대조합니다. 결과는 `근거 있음`, `공식 근거와 충돌`, `근거 부족`, `과장 표현`으로 분류하고 출처와 함께 보여줍니다.
-
-## MVP 범위
-
-- 입력: PDF 업로드, 텍스트 직접 입력
-- 도메인: AWS/AI 기술 주장 검증
-- 출력: claim별 판정, 근거 출처, 충돌 이유, 수정 제안
-- 제외: 뉴스/정치/법률/의료 팩트체크, 실시간 웹 검색, PPTX 직접 파싱
-
-## 예상 AWS 스택
-
-- Frontend: React, S3 Static Website Hosting
-- API: Amazon API Gateway
-- Compute: AWS Lambda
-- RAG: Amazon Bedrock Knowledge Bases
-- LLM: Amazon Bedrock
-- Storage: Amazon S3
-- Database: Amazon DynamoDB
-- Optional: Amazon Bedrock Guardrails
+- 프로젝트명은 `FactLens`로 고정합니다.
+- MVP 입력은 `텍스트 입력`을 필수로 합니다.
+- PDF 업로드는 시간이 되면 추가합니다.
+- PPTX는 직접 지원하지 않고 PDF 또는 텍스트로 변환해서 넣는 방식으로 안내합니다.
+- AWS 서비스는 `S3`, `Lambda`, `API Gateway`, `Bedrock`, `DynamoDB`를 중심으로 사용합니다.
+- AWS 리전은 서울 리전 `ap-northeast-2`로 고정합니다.
+- `Bedrock Knowledge Bases`가 지연되면 `sample-data/evidence_docs.json` 기반 간단 RAG로 대체합니다.
+- `Guardrails`는 선택 기능으로 둡니다.
 
 ## Repository Structure
 
 ```text
-frontend/       # React UI
-backend/        # Lambda/API application code
-infra/          # AWS infrastructure templates
-docs/           # architecture, role split, demo plan
-sample-data/    # sample PDFs, source documents, expected outputs
+factlens/
+  frontend/
+  backend/
+  infra/
+  sample-data/
+    evidence_docs.json
+    sample_wrong_aws_deck.md
+  docs/
+  README.md
+```
+
+## Main Documents
+
+- [프로젝트 통합 문서](docs/팩트렌즈_프로젝트_통합_문서.md): Git 병합 기록, 체크리스트, AWS 기술, 사용 도구, 연결 흐름 정리
+- [API Contract](docs/api-contract.md): Backend, Frontend, RAG 공통 입출력 스키마
+- [Architecture](docs/architecture.md): 서비스 흐름과 AWS 아키텍처
+- [RAG Contract](docs/rag-contract.md): RAG 담당과 Backend 담당의 연결 규칙
+
+## Fixed Labels
+
+프론트엔드 색상 처리와 백엔드/RAG 판정 결과는 아래 문자열을 그대로 사용합니다.
+
+```text
+근거 있음
+공식 근거와 충돌
+근거 부족
+과장 표현
+```
+
+## Planned AWS Stack
+
+- Frontend hosting: S3
+- API: API Gateway
+- Compute: Lambda
+- Model/RAG: Bedrock, Bedrock Knowledge Bases
+- Region: `ap-northeast-2`
+- Fallback RAG data: `sample-data/evidence_docs.json`
+- Result storage: DynamoDB
+- Optional: Guardrails
+
+## Current Backend API
+
+CloudFormation stack `factlens-backend-api` is deployed in `ap-northeast-2`.
+
+```text
+Base URL: https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
+POST /analyze
+GET /analyses/{analysisId}
+```
+
+Selected backend hardening from `feature/backend-api` is reflected in code:
+
+- CORS `OPTIONS` preflight handling
+- `MAX_CLAIMS_DEFAULT` environment default
+- `GET /analyses/{analysisId}` path parameter handling
+- Failed analysis persistence with `status: "FAILED"`
+- Raw input archive support through the pending `InputArchiveBucket` stack update
+
+Internet official-source search is available through request body `searchMode: "internet"` when a search API key is configured on Lambda.
+
+```json
+{
+  "documentText": "AWS Lambda 함수는 최대 5분까지만 실행할 수 있다.",
+  "maxClaims": 3,
+  "searchMode": "internet"
+}
 ```
 
 ## Next Steps
 
-1. 팀원 4명 역할을 `docs/team-roles.md`에 확정합니다.
-2. AWS 리전과 사용 가능한 Bedrock 모델/Knowledge Bases 권한을 확인합니다.
-3. 근거 문서와 데모용 오류 발표자료를 `sample-data/` 기준으로 준비합니다.
-4. API 계약과 결과 JSON 형식을 확정합니다.
-
+1. 역할별 브랜치에서 작업을 시작합니다.
+2. 프론트엔드, 백엔드, RAG 담당은 `docs/api-contract.md`의 응답 스키마를 기준으로 개발합니다.
+3. Data/Demo 담당은 `sample-data/evidence_docs.json`과 `sample-data/sample_wrong_aws_deck.md`를 먼저 채웁니다.
+4. 다른 담당 폴더는 직접 수정하지 않는 것을 원칙으로 합니다.

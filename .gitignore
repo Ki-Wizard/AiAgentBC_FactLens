@@ -27,6 +27,7 @@ venv/
 .aws-sam/
 cdk.out/
 *.template
+infra/packaged-template.yaml
 
 # Generated/demo outputs
 outputs/

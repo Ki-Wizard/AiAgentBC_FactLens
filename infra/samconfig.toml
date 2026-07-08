@@ -1,0 +1,24 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "factlens-backend-api"
+region = "ap-northeast-2"
+
+[default.validate.parameters]
+template_file = "infra/template.yaml"
+
+[default.build.parameters]
+template_file = "infra/template.yaml"
+cached = true
+parallel = true
+
+[default.deploy.parameters]
+template_file = "infra/template.yaml"
+stack_name = "factlens-backend-api"
+region = "ap-northeast-2"
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+s3_prefix = "factlens-backend-api"
+confirm_changeset = false
+fail_on_empty_changeset = false
+parameter_overrides = "FactLensStage=\"dev\" AnalysesTableName=\"factlens-analyses-dev\" FactLensUseFallback=\"false\" FactLensStorageMode=\"dynamodb\" MaxClaimsDefault=\"10\" CorsAllowOrigin=\"http://localhost:5173\" EvidenceBucketName=\"factlens-dev-evidence-docs-069423016509-ap-northeast-2\" EvidenceCorpusKey=\"source-docs/aws-evidence-corpus.md\" FallbackEvidenceKey=\"fallback/evidence_docs.json\" FactLensSearchMode=\"fallback\" FactLensSearchProvider=\"auto\" FactLensAllowedSourceDomains=\"docs.aws.amazon.com,aws.amazon.com,repost.aws\" FactLensSearchResultLimit=\"3\""

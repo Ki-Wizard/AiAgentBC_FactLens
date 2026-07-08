@@ -1,0 +1,79 @@
+[
+  {
+    "id": "aws-lambda-timeout",
+    "title": "AWS Lambda quotas",
+    "sourceType": "AWS official docs",
+    "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
+    "service": "AWS Lambda",
+    "category": "quota",
+    "keywords": ["lambda", "timeout", "duration", "900 seconds", "15 minutes", "실행 시간", "최대"],
+    "summaryKo": "AWS Lambda 함수의 function timeout quota는 900초, 즉 15분이다.",
+    "evidenceText": "Function timeout is listed as 900 seconds (15 minutes)."
+  },
+  {
+    "id": "aws-s3-multipart-object-size",
+    "title": "Amazon S3 multipart upload limits",
+    "sourceType": "AWS official docs",
+    "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html",
+    "service": "Amazon S3",
+    "category": "storage",
+    "keywords": ["s3", "object", "multipart", "upload", "size", "1GB", "객체", "업로드"],
+    "summaryKo": "Amazon S3 multipart upload 공식 제한 표는 단일 객체 업로드 크기가 1GB보다 훨씬 큰 범위까지 가능함을 보여준다.",
+    "evidenceText": "The multipart upload limits table lists a maximum object size far larger than 1 GB and part sizes from 5 MiB to 5 GiB."
+  },
+  {
+    "id": "aws-dynamodb-nosql-no-join",
+    "title": "What is Amazon DynamoDB?",
+    "sourceType": "AWS official docs",
+    "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html",
+    "service": "Amazon DynamoDB",
+    "category": "database",
+    "keywords": ["dynamodb", "nosql", "join", "relational", "database", "sql", "관계형", "조인"],
+    "summaryKo": "Amazon DynamoDB는 서버리스 완전관리형 분산 NoSQL 데이터베이스이며, 관계형 데이터베이스의 JOIN operator를 지원하지 않는다고 설명한다.",
+    "evidenceText": "DynamoDB is described as a serverless, fully managed, distributed NoSQL database. The documentation states that DynamoDB doesn't support a JOIN operator."
+  },
+  {
+    "id": "aws-bedrock-foundation-models",
+    "title": "Overview - Amazon Bedrock",
+    "sourceType": "AWS official docs",
+    "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html",
+    "service": "Amazon Bedrock",
+    "category": "service_feature",
+    "keywords": ["bedrock", "foundation model", "generative ai", "api", "모델", "생성형 AI"],
+    "summaryKo": "Amazon Bedrock은 여러 foundation model에 접근해 생성형 AI 애플리케이션을 만들고 확장할 수 있는 완전관리형 서비스다.",
+    "evidenceText": "Amazon Bedrock is a fully managed service that provides access to high-performing foundation models for building and scaling generative AI applications."
+  },
+  {
+    "id": "aws-bedrock-knowledge-bases-rag",
+    "title": "Retrieve data and generate AI responses with Amazon Bedrock Knowledge Bases",
+    "sourceType": "AWS official docs",
+    "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html",
+    "service": "Amazon Bedrock Knowledge Bases",
+    "category": "ai_rag",
+    "keywords": ["bedrock knowledge bases", "rag", "retrieval", "data sources", "citations", "검색", "근거"],
+    "summaryKo": "Amazon Bedrock Knowledge Bases는 데이터 소스에서 관련 정보를 검색해 생성형 AI 응답의 관련성과 정확성을 높이는 RAG 구성을 지원한다.",
+    "evidenceText": "RAG uses information from data sources to improve the relevancy and accuracy of generated responses. Knowledge Bases can search data sources and include citations."
+  },
+  {
+    "id": "aws-ec2-spot-interruption",
+    "title": "Spot Instance interruption notices",
+    "sourceType": "AWS official docs",
+    "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html",
+    "service": "Amazon EC2 Spot Instances",
+    "category": "compute",
+    "keywords": ["spot", "ec2", "interruption", "terminate", "stop", "real-time", "중단", "스팟"],
+    "summaryKo": "EC2 Spot Instance는 중단될 수 있으며, Amazon EC2가 중단 2분 전에 interruption notice를 발행할 수 있다.",
+    "evidenceText": "A Spot Instance interruption notice is a warning that is issued two minutes before Amazon EC2 stops or terminates your Spot Instance."
+  },
+  {
+    "id": "rag-improves-not-eliminates",
+    "title": "Amazon Bedrock Knowledge Bases and RAG behavior",
+    "sourceType": "AWS official docs",
+    "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html",
+    "service": "RAG",
+    "category": "ai_rag",
+    "keywords": ["rag", "hallucination", "accuracy", "relevancy", "완전히", "환각", "출처"],
+    "summaryKo": "RAG는 데이터 소스의 정보를 사용해 생성 응답의 관련성과 정확성을 높이는 기술이지만, 환각이 완전히 사라진다고 보장하는 근거는 아니다.",
+    "evidenceText": "RAG uses information from data sources to improve the relevancy and accuracy of generated responses."
+  }
+]
