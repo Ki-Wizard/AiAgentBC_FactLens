@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "INVALID_DOCUMENT_TEXT",
+    "message": "documentText must be a non-empty string."
+  }
+}

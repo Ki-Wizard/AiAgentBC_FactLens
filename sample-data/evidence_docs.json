@@ -1,0 +1,15 @@
+{
+  "bucket": "factlens-dev-evidence-docs-069423016509-ap-northeast-2",
+  "evidenceCorpusKey": "source-docs/aws-evidence-corpus.md",
+  "fallbackKey": "fallback/evidence_docs.json",
+  "sources": [
+    {
+      "title": "AWS Lambda documentation",
+      "url": "s3://factlens-dev-evidence-docs-069423016509-ap-northeast-2/source-docs/aws-evidence-corpus.md"
+    },
+    {
+      "title": "Amazon Bedrock Knowledge Bases notes",
+      "url": "s3://factlens-dev-evidence-docs-069423016509-ap-northeast-2/source-docs/aws-evidence-corpus.md#bedrock-knowledge-bases"
+    }
+  ]
+}
