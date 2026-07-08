@@ -1,6 +1,6 @@
 import React from "react";
 import { AlertTriangle, CheckCircle2, FileSearch, Loader2, Search, ShieldQuestion } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getClaimKey,
   getClaimText,
@@ -153,6 +153,8 @@ function App() {
   const [selectedClaimKey, setSelectedClaimKey] = useState(getClaimKey(fallbackResult.claims[0], 0));
   const [lookupId, setLookupId] = useState(fallbackResult.analysisId);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusTone, setStatusTone] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const selectedClaim = useMemo(() => {
@@ -161,6 +163,7 @@ function App() {
       analysis?.claims?.[0]
     );
   }, [analysis, selectedClaimKey]);
+  const hasClaims = (analysis?.claims?.length ?? 0) > 0;
 
   const applyAnalysis = (result) => {
     const normalizedResult = normalizeAnalysisResult(result);
@@ -169,13 +172,35 @@ function App() {
     setLookupId(normalizedResult.analysisId || "");
   };
 
+  const showCompletedStatus = (message) => {
+    setStatusMessage(message);
+    setStatusTone("success");
+  };
+
+  useEffect(() => {
+    if (statusTone !== "success") {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setStatusMessage("");
+      setStatusTone("idle");
+    }, 1600);
+
+    return () => window.clearTimeout(timer);
+  }, [statusTone]);
+
   const analyzeText = async () => {
     setIsLoading(true);
+    setStatusMessage("분석 중");
+    setStatusTone("loading");
     setErrorMessage("");
 
     if (!inputText.trim()) {
       setErrorMessage("분석할 텍스트를 입력하세요.");
       setIsLoading(false);
+      setStatusMessage("");
+      setStatusTone("idle");
       return;
     }
 
@@ -183,6 +208,7 @@ function App() {
       window.setTimeout(() => {
         applyAnalysis(fallbackResult);
         setIsLoading(false);
+        showCompletedStatus("분석 완료");
       }, 500);
       return;
     }
@@ -200,9 +226,11 @@ function App() {
 
       const result = await response.json();
       applyAnalysis(result);
+      showCompletedStatus("분석 완료");
     } catch (error) {
       console.error("[FactLens] POST /analyze failed. Rendering fallback result.", error);
       applyAnalysis(fallbackResult);
+      showCompletedStatus("분석 완료");
     } finally {
       setIsLoading(false);
     }
@@ -210,11 +238,15 @@ function App() {
 
   const loadAnalysis = async () => {
     setIsLoading(true);
+    setStatusMessage("결과 조회 중");
+    setStatusTone("loading");
     setErrorMessage("");
 
     if (!lookupId.trim()) {
       setErrorMessage("조회할 analysisId를 입력하세요.");
       setIsLoading(false);
+      setStatusMessage("");
+      setStatusTone("idle");
       return;
     }
 
@@ -222,6 +254,7 @@ function App() {
       window.setTimeout(() => {
         applyAnalysis(fallbackResult);
         setIsLoading(false);
+        showCompletedStatus("조회 완료");
       }, 400);
       return;
     }
@@ -235,9 +268,11 @@ function App() {
 
       const result = await response.json();
       applyAnalysis(result);
+      showCompletedStatus("조회 완료");
     } catch (error) {
       console.error("[FactLens] GET /analyses/{analysisId} failed. Rendering fallback result.", error);
       applyAnalysis(fallbackResult);
+      showCompletedStatus("조회 완료");
     } finally {
       setIsLoading(false);
     }
@@ -245,6 +280,14 @@ function App() {
 
   return (
     <main className="app-shell">
+      {statusMessage && (
+        <div className="status-overlay" aria-live="polite" aria-atomic="true">
+          <div className={`status-card ${statusTone}`}>
+            {statusTone === "loading" ? <Loader2 className="spin" size={22} /> : <CheckCircle2 size={22} />}
+            <span>{statusMessage}</span>
+          </div>
+        </div>
+      )}
       <section className="hero-panel">
         <div className="hero-copy">
           <div className="brand-row">
@@ -269,7 +312,7 @@ function App() {
               {isLoading ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
               분석 시작
             </button>
-            <span>POST /analyze</span>
+            <span>분석 요청 API: POST /analyze</span>
           </div>
           <div className="lookup-row">
             <input
@@ -281,7 +324,7 @@ function App() {
             <button type="button" onClick={loadAnalysis} disabled={isLoading}>
               결과 조회
             </button>
-            <span>GET /analyses/&#123;analysisId&#125;</span>
+            <span>결과 조회 API: GET /analyses/&#123;analysisId&#125;</span>
           </div>
           {errorMessage && <p className="error-text">{errorMessage}</p>}
         </div>
@@ -303,29 +346,40 @@ function App() {
                 <h2>검증 결과</h2>
                 <span>{analysis.analysisId}</span>
               </div>
-              {analysis.claims.map((claim, index) => {
-                const percent = Math.round(claim.confidence * 100);
-                return (
-                  <button
-                    type="button"
-                    key={getClaimKey(claim, index)}
-                    data-tone={getLabelMeta(claim.label).tone}
-                    className={`claim-item ${
-                      getClaimKey(claim, index) === selectedClaimKey ? "active" : ""
-                    }`}
-                    onClick={() => setSelectedClaimKey(getClaimKey(claim, index))}
-                  >
-                    <div className="claim-item-top">
-                      <ClaimBadge label={claim.label} />
-                      <span className="confidence">신뢰도 {percent}%</span>
-                    </div>
-                    <span className="claim-text">{getClaimText(claim)}</span>
-                    <div className="confidence-bar">
-                      <span style={{ width: `${percent}%` }} />
-                    </div>
-                  </button>
-                );
-              })}
+              {hasClaims ? (
+                analysis.claims.map((claim, index) => {
+                  const percent = Math.round(claim.confidence * 100);
+                  return (
+                    <button
+                      type="button"
+                      key={getClaimKey(claim, index)}
+                      data-tone={getLabelMeta(claim.label).tone}
+                      className={`claim-item ${
+                        getClaimKey(claim, index) === selectedClaimKey ? "active" : ""
+                      }`}
+                      onClick={() => setSelectedClaimKey(getClaimKey(claim, index))}
+                    >
+                      <div className="claim-item-top">
+                        <ClaimBadge label={claim.label} />
+                        <span className="confidence">신뢰도 {percent}%</span>
+                      </div>
+                      <span className="claim-text">{getClaimText(claim)}</span>
+                      <div className="confidence-bar">
+                        <span style={{ width: `${percent}%` }} />
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="empty-state">
+                  <ShieldQuestion size={24} aria-hidden="true" />
+                  <h3>추출된 claim이 없습니다.</h3>
+                  <p>
+                    현재 데모 백엔드는 AWS, Bedrock, Lambda, S3, RAG 같은 AWS/AI 관련 문장을
+                    중심으로 claim을 추출합니다.
+                  </p>
+                </div>
+              )}
             </div>
 
             <aside
@@ -374,7 +428,11 @@ function App() {
                   </div>
                 </>
               ) : (
-                <p>왼쪽에서 claim을 선택하세요.</p>
+                <div className="empty-state detail-empty">
+                  <ShieldQuestion size={24} aria-hidden="true" />
+                  <h3>상세 결과가 없습니다.</h3>
+                  <p>AWS/AI 관련 기술 주장 문장을 입력하면 판정 이유와 근거 출처가 표시됩니다.</p>
+                </div>
               )}
             </aside>
           </section>
