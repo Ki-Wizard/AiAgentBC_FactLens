@@ -1,0 +1,188 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FactLens backend-only HTTP API, Lambda, and DynamoDB stack.
+
+Parameters:
+  FactLensStage:
+    Type: String
+    Default: dev
+    AllowedPattern: '^[a-z0-9-]+$'
+    Description: Deployment stage suffix for backend resources.
+  AnalysesTableName:
+    Type: String
+    Default: factlens-analyses-dev
+    Description: DynamoDB table name exposed to Lambda as ANALYSES_TABLE_NAME.
+  FactLensUseFallback:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: Sets FACTLENS_USE_FALLBACK for backend RAG fallback behavior.
+  FactLensStorageMode:
+    Type: String
+    Default: dynamodb
+    AllowedValues:
+      - dynamodb
+      - memory
+      - local-file
+    Description: Sets FACTLENS_STORAGE_MODE for the backend storage adapter.
+  MaxClaimsDefault:
+    Type: Number
+    Default: 10
+    MinValue: 1
+    MaxValue: 20
+    Description: Sets MAX_CLAIMS_DEFAULT for request validation.
+  CorsAllowOrigin:
+    Type: String
+    Default: http://localhost:5173
+    Description: Sets CORS_ALLOW_ORIGIN and API Gateway CORS origin.
+  EvidenceBucketName:
+    Type: String
+    Default: factlens-dev-evidence-docs-069423016509-ap-northeast-2
+    Description: Current evidence S3 bucket name used by the backend.
+  EvidenceCorpusKey:
+    Type: String
+    Default: source-docs/aws-evidence-corpus.md
+    Description: Current evidence corpus object key.
+  FallbackEvidenceKey:
+    Type: String
+    Default: fallback/evidence_docs.json
+    Description: Current fallback evidence object key.
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    MemorySize: 256
+    Timeout: 30
+    Tracing: Active
+    Environment:
+      Variables:
+        ANALYSES_TABLE_NAME: !Ref AnalysesTable
+        FACTLENS_USE_FALLBACK: !Ref FactLensUseFallback
+        FACTLENS_STORAGE_MODE: !Ref FactLensStorageMode
+        MAX_CLAIMS_DEFAULT: !Ref MaxClaimsDefault
+        CORS_ALLOW_ORIGIN: !Ref CorsAllowOrigin
+        EVIDENCE_BUCKET_NAME: !Ref EvidenceBucketName
+        EVIDENCE_CORPUS_KEY: !Ref EvidenceCorpusKey
+        FALLBACK_EVIDENCE_KEY: !Ref FallbackEvidenceKey
+        NODE_OPTIONS: --enable-source-maps
+
+Metadata:
+  FactLensEnvironmentContract:
+    AWS_REGION: Provided automatically by the Lambda runtime; do not override the reserved variable.
+    ANALYSES_TABLE_NAME: Mapped from the AnalysesTableName parameter.
+    FACTLENS_USE_FALLBACK: Mapped from the FactLensUseFallback parameter.
+    FACTLENS_STORAGE_MODE: Mapped from the FactLensStorageMode parameter.
+    MAX_CLAIMS_DEFAULT: Mapped from the MaxClaimsDefault parameter.
+    CORS_ALLOW_ORIGIN: Mapped from the CorsAllowOrigin parameter.
+    EVIDENCE_BUCKET_NAME: Mapped from the EvidenceBucketName parameter.
+    EVIDENCE_CORPUS_KEY: Mapped from the EvidenceCorpusKey parameter.
+    FALLBACK_EVIDENCE_KEY: Mapped from the FallbackEvidenceKey parameter.
+
+Resources:
+  FactLensHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref CorsAllowOrigin
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+          - X-Amz-Date
+          - X-Api-Key
+          - X-Amz-Security-Token
+        AllowMethods:
+          - OPTIONS
+          - POST
+          - GET
+        MaxAge: 600
+
+  AnalysesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref AnalysesTableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: analysisId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: analysisId
+          KeyType: HASH
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Application
+          Value: FactLens
+        - Key: Component
+          Value: Backend
+        - Key: Stage
+          Value: !Ref FactLensStage
+
+  FactLensBackendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub factlens-backend-api-${FactLensStage}
+      Description: FactLens backend API handler for POST /analyze and GET /analyses/{analysisId}.
+      CodeUri: ../backend/
+      Handler: src/app.handler
+      Events:
+        AnalyzeRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FactLensHttpApi
+            Path: /analyze
+            Method: POST
+            PayloadFormatVersion: '2.0'
+        GetAnalysisRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref FactLensHttpApi
+            Path: /analyses/{analysisId}
+            Method: GET
+            PayloadFormatVersion: '2.0'
+      Policies:
+        - Statement:
+            - Sid: DynamoDbAnalysisReadWrite
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+              Resource: !GetAtt AnalysesTable.Arn
+            - Sid: EvidenceObjectRead
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource:
+                - !Sub arn:${AWS::Partition}:s3:::${EvidenceBucketName}/${EvidenceCorpusKey}
+                - !Sub arn:${AWS::Partition}:s3:::${EvidenceBucketName}/${FallbackEvidenceKey}
+            - Sid: EvidenceBucketPrefixList
+              Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !Sub arn:${AWS::Partition}:s3:::${EvidenceBucketName}
+              Condition:
+                StringEquals:
+                  s3:prefix:
+                    - !Ref EvidenceCorpusKey
+                    - !Ref FallbackEvidenceKey
+
+Outputs:
+  ApiEndpoint:
+    Description: HTTP API endpoint for backend smoke tests.
+    Value: !Sub https://${FactLensHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  AnalysesTableName:
+    Description: DynamoDB table name used for analysis persistence.
+    Value: !Ref AnalysesTable
+  BackendFunctionName:
+    Description: Lambda function name for the backend API handler.
+    Value: !Ref FactLensBackendFunction
+  BackendFunctionArn:
+    Description: Lambda function ARN for the backend API handler.
+    Value: !GetAtt FactLensBackendFunction.Arn
