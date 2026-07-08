@@ -1,0 +1,72 @@
+{
+  "analysisId": "analysis-fallback-001",
+  "status": "COMPLETED",
+  "summary": {
+    "totalClaims": 4,
+    "supported": 1,
+    "conflicted": 1,
+    "insufficient": 1,
+    "exaggerated": 1
+  },
+  "claims": [
+    {
+      "claimId": "claim-001",
+      "text": "Amazon S3는 객체 저장 서비스이며, 정적 웹 사이트 호스팅에 사용할 수 있다.",
+      "label": "근거 있음",
+      "confidence": 0.9,
+      "reason": "fallback evidence에서 S3 객체 저장과 정적 웹 사이트 호스팅 근거를 찾았다.",
+      "correctedText": "Amazon S3는 객체 저장 서비스이며, 정적 웹 사이트 호스팅에 사용할 수 있다.",
+      "sources": [
+        {
+          "title": "What is Amazon S3?",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html"
+        },
+        {
+          "title": "Hosting a static website using Amazon S3",
+          "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html"
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "claimId": "claim-002",
+      "text": "AWS Lambda 함수는 최대 5분까지만 실행할 수 있다.",
+      "label": "공식 근거와 충돌",
+      "confidence": 0.91,
+      "reason": "fallback evidence에서 Lambda timeout은 최대 15분까지 설정 가능하다는 근거를 찾았다.",
+      "correctedText": "AWS Lambda 함수 timeout은 최대 15분까지 설정할 수 있다.",
+      "sources": [
+        {
+          "title": "Configure Lambda function timeout",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-timeout.html"
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "claimId": "claim-003",
+      "text": "Bedrock Knowledge Bases는 어떤 리전에서도 별도 설정 없이 모든 Foundation Model을 자동으로 사용할 수 있다.",
+      "label": "근거 부족",
+      "confidence": 0.68,
+      "reason": "fallback evidence에 모든 리전과 모든 Foundation Model 자동 사용을 입증하는 근거가 없다.",
+      "correctedText": "Bedrock Knowledge Bases와 사용할 Foundation Model은 프로젝트 리전인 ap-northeast-2에서 가용성을 확인한 뒤 선택해야 한다.",
+      "sources": [],
+      "evidence": []
+    },
+    {
+      "claimId": "claim-004",
+      "text": "Guardrails를 적용하면 모든 잘못된 답변과 환각을 100% 차단할 수 있다.",
+      "label": "과장 표현",
+      "confidence": 0.86,
+      "reason": "Guardrails는 안전장치지만 모든 잘못된 답변과 환각을 100% 차단한다고 단정하기 어렵다.",
+      "correctedText": "Guardrails는 생성형 AI 애플리케이션의 위험을 줄이는 안전장치로 사용할 수 있다.",
+      "sources": [
+        {
+          "title": "Guardrails for Amazon Bedrock",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html"
+        }
+      ],
+      "evidence": []
+    }
+  ]
+}

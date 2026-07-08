@@ -7,7 +7,7 @@
 ## Demo Input
 
 - 입력 파일: `sample-data/sample_wrong_aws_deck.md`
-- 예상 결과: `sample-data/expected_analysis.json`
+- 예상 결과: `sample-data/expected-results/analyze-success.json`
 - fallback 근거: `sample-data/evidence_docs.json`
 
 데모 입력은 아래 라벨 분포를 목표로 합니다.
@@ -34,7 +34,8 @@
 
 실시간 시연이 실패할 경우를 대비해 다음 자료를 사용합니다.
 
-- `sample-data/expected_analysis.json`
+- `sample-data/expected-results/analyze-success.json`
+- `sample-data/expected-results/bedrock-fallback.json`
 - 결과 화면 스크린샷
 - AWS 아키텍처 슬라이드
 - 실패 상황별 대체 멘트: `docs/rehearsal-checklist.md`

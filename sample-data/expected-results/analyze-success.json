@@ -25,7 +25,8 @@
           "title": "Hosting a static website using Amazon S3",
           "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html"
         }
-      ]
+      ],
+      "evidence": []
     },
     {
       "claimId": "claim-002",
@@ -39,7 +40,8 @@
           "title": "What is Amazon API Gateway?",
           "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html"
         }
-      ]
+      ],
+      "evidence": []
     },
     {
       "claimId": "claim-003",
@@ -53,7 +55,8 @@
           "title": "Configure Lambda function timeout",
           "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-timeout.html"
         }
-      ]
+      ],
+      "evidence": []
     },
     {
       "claimId": "claim-004",
@@ -67,7 +70,8 @@
           "title": "What is Amazon DynamoDB?",
           "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html"
         }
-      ]
+      ],
+      "evidence": []
     },
     {
       "claimId": "claim-005",
@@ -81,7 +85,8 @@
           "title": "Knowledge bases for Amazon Bedrock",
           "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html"
         }
-      ]
+      ],
+      "evidence": []
     },
     {
       "claimId": "claim-006",
@@ -95,7 +100,8 @@
           "title": "Guardrails for Amazon Bedrock",
           "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html"
         }
-      ]
+      ],
+      "evidence": []
     },
     {
       "claimId": "claim-007",
@@ -104,7 +110,8 @@
       "confidence": 0.72,
       "reason": "현재 fallback evidence에는 모든 리전과 모든 Foundation Model 자동 사용을 입증할 근거가 없다. 실제 구현 전에는 리전과 모델 가용성을 별도로 확인해야 한다.",
       "correctedText": "Bedrock Knowledge Bases와 사용할 Foundation Model은 프로젝트 리전인 ap-northeast-2에서 가용성을 확인한 뒤 선택해야 한다.",
-      "sources": []
+      "sources": [],
+      "evidence": []
     },
     {
       "claimId": "claim-008",
@@ -118,7 +125,8 @@
           "title": "Knowledge bases for Amazon Bedrock",
           "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html"
         }
-      ]
+      ],
+      "evidence": []
     }
   ]
 }

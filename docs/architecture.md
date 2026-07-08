@@ -43,3 +43,5 @@ User
 ## AWS Defaults
 
 - Region: `ap-northeast-2`
+- Deploy: AWS SAM
+- API Gateway CORS: Frontend origin 허용

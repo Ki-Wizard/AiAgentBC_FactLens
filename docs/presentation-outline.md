@@ -38,7 +38,7 @@ FactLens는 AWS/AI 발표자료 속 기술 주장을 문장 단위로 추출하�
 6. **Fallback Strategy**
    - Bedrock 실패: mock JSON 사용
    - Knowledge Bases 지연: `evidence_docs.json` 기반 fallback RAG
-   - API 실패: `expected_analysis.json`으로 결과 화면 시연
+   - API 실패: `sample-data/expected-results/analyze-success.json`으로 결과 화면 시연
 
 7. **Result**
    - FactLens는 기술 발표자료 검토 시간을 줄이고, 공식 근거 기반 피드백을 제공합니다.

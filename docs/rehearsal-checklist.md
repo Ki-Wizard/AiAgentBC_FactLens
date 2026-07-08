@@ -4,7 +4,9 @@
 
 - [ ] 현재 브랜치가 발표용 브랜치인지 확인합니다.
 - [ ] `sample-data/sample_wrong_aws_deck.md`를 열어 입력 내용을 확인합니다.
-- [ ] `sample-data/expected_analysis.json`을 열어 mock 결과를 확인합니다.
+- [ ] `sample-data/expected-results/analyze-success.json`을 열어 mock 결과를 확인합니다.
+- [ ] `sample-data/expected-results/bedrock-fallback.json`을 열어 fallback 결과를 확인합니다.
+- [ ] mock JSON의 claim이 `claimId`, `text`, `label`, `reason`, `correctedText`, `sources`를 포함하는지 확인합니다.
 - [ ] 결과 화면에서 최소 3가지 색상 라벨이 보이는지 확인합니다.
 - [ ] Lambda timeout claim과 Guardrails 100% claim을 설명할 수 있는지 확인합니다.
 
@@ -20,7 +22,7 @@
 
 ### API 연결 실패
 
-"API 연결이 실패해도 프론트 결과 화면은 `expected_analysis.json`으로 시연 가능합니다. 이 JSON은 백엔드와 프론트가 합의한 동일한 응답 스키마입니다."
+"API 연결이 실패해도 프론트 결과 화면은 `sample-data/expected-results/analyze-success.json`으로 시연 가능합니다. 이 JSON은 백엔드와 프론트가 합의한 동일한 응답 스키마입니다."
 
 ### PDF 파싱 실패
 

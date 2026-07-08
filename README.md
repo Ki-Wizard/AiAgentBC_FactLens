@@ -59,7 +59,8 @@ factlens/
 ## Demo Assets
 
 - Demo input: `sample-data/sample_wrong_aws_deck.md`
-- Expected result/mock response: `sample-data/expected_analysis.json`
+- Expected result/mock response: `sample-data/expected-results/analyze-success.json`
+- Bedrock failure fallback response: `sample-data/expected-results/bedrock-fallback.json`
 - Fallback evidence data: `sample-data/evidence_docs.json`
 - Demo flow: `docs/demo-scenario.md`
 - Presentation outline: `docs/presentation-outline.md`
