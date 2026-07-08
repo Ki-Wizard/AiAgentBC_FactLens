@@ -1,15 +1,78 @@
 {
   "version": "0.1",
   "description": "Fallback RAG evidence data used when Bedrock Knowledge Bases is delayed.",
+  "schemaNotes": {
+    "id": "Stable evidence id used by fallback retrieval.",
+    "title": "Human-readable source title.",
+    "url": "Official or team-approved source URL.",
+    "service": "AWS service or project area.",
+    "summary": "Short evidence summary for retrieval and prompt context.",
+    "keywords": "Simple keyword hints for fallback retrieval."
+  },
   "documents": [
     {
       "id": "aws-lambda-quotas",
       "title": "AWS Lambda quotas",
       "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
       "service": "Lambda",
-      "notes": "Use this source to verify Lambda quota and timeout-related claims.",
-      "keywords": ["Lambda", "quota", "timeout", "execution time"]
+      "summary": "AWS Lambda has documented quotas and configurable limits. Timeout-related claims should be checked against the Lambda configuration and quota documentation.",
+      "keywords": ["Lambda", "quota", "timeout", "execution time", "15 minutes"]
+    },
+    {
+      "id": "aws-lambda-timeout",
+      "title": "Configure Lambda function timeout",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/configuration-timeout.html",
+      "service": "Lambda",
+      "summary": "Lambda timeout is configurable and can be set up to 15 minutes. Claims that Lambda can only run for 5 minutes conflict with the official timeout limit.",
+      "keywords": ["Lambda", "timeout", "15 minutes", "configuration"]
+    },
+    {
+      "id": "amazon-s3-static-website",
+      "title": "Hosting a static website using Amazon S3",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html",
+      "service": "S3",
+      "summary": "Amazon S3 can host a static website from a bucket when static website hosting is configured.",
+      "keywords": ["S3", "static website", "hosting", "bucket"]
+    },
+    {
+      "id": "amazon-s3-object-storage",
+      "title": "What is Amazon S3?",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html",
+      "service": "S3",
+      "summary": "Amazon S3 is an object storage service. It stores data as objects within buckets.",
+      "keywords": ["S3", "object storage", "bucket", "object"]
+    },
+    {
+      "id": "bedrock-knowledge-bases",
+      "title": "Knowledge bases for Amazon Bedrock",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html",
+      "service": "Bedrock",
+      "summary": "Knowledge Bases for Amazon Bedrock support retrieval augmented generation by connecting foundation models to data sources for relevant retrieval.",
+      "keywords": ["Bedrock", "Knowledge Bases", "RAG", "retrieval", "data source"]
+    },
+    {
+      "id": "bedrock-guardrails",
+      "title": "Guardrails for Amazon Bedrock",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html",
+      "service": "Bedrock",
+      "summary": "Guardrails help implement safeguards for generative AI applications. They reduce risk but should not be described as a 100% guarantee that every wrong answer is blocked.",
+      "keywords": ["Bedrock", "Guardrails", "safety", "policy", "grounding"]
+    },
+    {
+      "id": "amazon-dynamodb-introduction",
+      "title": "What is Amazon DynamoDB?",
+      "url": "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html",
+      "service": "DynamoDB",
+      "summary": "Amazon DynamoDB is a serverless NoSQL database service suitable for key-value and document data, including analysis metadata and result records.",
+      "keywords": ["DynamoDB", "NoSQL", "serverless", "metadata", "results"]
+    },
+    {
+      "id": "api-gateway-overview",
+      "title": "What is Amazon API Gateway?",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html",
+      "service": "API Gateway",
+      "summary": "Amazon API Gateway helps create, publish, maintain, monitor, and secure APIs at scale for backend services such as Lambda.",
+      "keywords": ["API Gateway", "API", "Lambda", "HTTP API", "backend"]
     }
   ]
 }
-
