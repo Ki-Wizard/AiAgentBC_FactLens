@@ -24,11 +24,61 @@ sam build --template-file infra/template.yaml --region ap-northeast-2
 sam deploy --config-file infra/samconfig.toml --region ap-northeast-2 --no-confirm-changeset --no-fail-on-empty-changeset
 ```
 
+If the SAM CLI is not installed, use AWS CLI packaging and deployment:
+
+```bash
+aws cloudformation package \
+  --template-file infra/template.yaml \
+  --s3-bucket factlens-dev-deploy-artifacts-069423016509-ap-northeast-2 \
+  --s3-prefix factlens-backend-api \
+  --output-template-file infra/packaged-template.yaml \
+  --region ap-northeast-2
+
+aws cloudformation deploy \
+  --template-file infra/packaged-template.yaml \
+  --stack-name factlens-backend-api \
+  --region ap-northeast-2 \
+  --capabilities CAPABILITY_IAM \
+  --parameter-overrides \
+    FactLensStage=dev \
+    AnalysesTableName=factlens-analyses-dev \
+    FactLensUseFallback=false \
+    FactLensStorageMode=dynamodb \
+    MaxClaimsDefault=10 \
+    CorsAllowOrigin=http://localhost:5173 \
+    EvidenceBucketName=factlens-dev-evidence-docs-069423016509-ap-northeast-2 \
+    EvidenceCorpusKey=source-docs/aws-evidence-corpus.md \
+    FallbackEvidenceKey=fallback/evidence_docs.json \
+  --no-fail-on-empty-changeset
+```
+
 Default stack settings live in `infra/samconfig.toml`: stack name `factlens-backend-api`, region `ap-northeast-2`, and `CAPABILITY_IAM` for the Lambda execution role.
 
 Deployment parameters keep backend runtime configuration explicit: `ANALYSES_TABLE_NAME`, `FACTLENS_USE_FALLBACK`, `FACTLENS_STORAGE_MODE`, `MAX_CLAIMS_DEFAULT`, `CORS_ALLOW_ORIGIN`, `EVIDENCE_BUCKET_NAME`, `EVIDENCE_CORPUS_KEY`, and `FALLBACK_EVIDENCE_KEY`. Lambda provides reserved `AWS_REGION` automatically at runtime.
 
 Use the deployed API URL for backend smoke checks after deployment.
+
+## Current Deployment
+
+- Stack name: `factlens-backend-api`
+- Region: `ap-northeast-2`
+- API endpoint: `https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com`
+- DynamoDB table: `factlens-analyses-dev`
+- Lambda function: `factlens-backend-api-dev`
+- Deployment artifact bucket: `factlens-dev-deploy-artifacts-069423016509-ap-northeast-2`
+
+Frontend base URL:
+
+```text
+https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
+```
+
+Available endpoints:
+
+```text
+POST /analyze
+GET /analyses/{analysisId}
+```
 
 ## Backend API Contract
 

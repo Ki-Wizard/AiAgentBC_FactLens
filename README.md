@@ -56,6 +56,16 @@ factlens/
 - Result storage: DynamoDB
 - Optional: Guardrails
 
+## Current Backend API
+
+CloudFormation stack `factlens-backend-api` is deployed in `ap-northeast-2`.
+
+```text
+Base URL: https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
+POST /analyze
+GET /analyses/{analysisId}
+```
+
 ## Next Steps
 
 1. 역할별 브랜치에서 작업을 시작합니다.

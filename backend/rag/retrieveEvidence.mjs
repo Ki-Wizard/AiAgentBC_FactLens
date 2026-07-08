@@ -8,6 +8,10 @@ const DEFAULT_EVIDENCE_PATH = path.resolve(
   __dirname,
   "../../sample-data/evidence_docs.json",
 );
+const PACKAGED_EVIDENCE_PATH = path.resolve(
+  __dirname,
+  "../fixtures/evidence_docs.json",
+);
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -65,7 +69,15 @@ function scoreEvidence(claim, evidence) {
 }
 
 export async function loadEvidenceDocs(evidencePath = DEFAULT_EVIDENCE_PATH) {
-  const content = await fs.readFile(evidencePath, "utf8");
+  let content;
+  try {
+    content = await fs.readFile(evidencePath, "utf8");
+  } catch (error) {
+    if (evidencePath !== DEFAULT_EVIDENCE_PATH || error?.code !== "ENOENT") {
+      throw error;
+    }
+    content = await fs.readFile(PACKAGED_EVIDENCE_PATH, "utf8");
+  }
   return JSON.parse(content);
 }
 
