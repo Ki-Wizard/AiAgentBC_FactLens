@@ -1,19 +1,21 @@
 # Infrastructure
 
-AWS 리소스 정의와 배포 스크립트를 관리하는 영역입니다.
+AWS 리소스 정의와 배포 기록을 관리하는 영역입니다.
 
 ## Planned Resources
 
 - S3 bucket for frontend hosting
-- S3 bucket for uploaded documents
-- S3 bucket for Knowledge Base source documents
-- DynamoDB table for analysis jobs/results
+- S3 bucket for uploaded input and evidence documents
 - Lambda functions
 - API Gateway HTTP API
-- Bedrock Knowledge Base
-- IAM roles and policies
+- DynamoDB table for analysis results
+- Bedrock and Bedrock Knowledge Bases configuration
+
+## Defaults
+
+- Region: `ap-northeast-2`
 
 ## Notes
 
-교육 계정 권한에 따라 CDK, SAM, CloudFormation, 또는 콘솔 수동 구성을 선택합니다. 선택한 방식은 이 문서에 기록합니다.
+교육 계정 권한에 따라 콘솔 수동 구성, SAM, CDK, CloudFormation 중 가능한 방식을 선택합니다. 실제 선택한 방식과 리소스 이름은 이후 문서에 기록합니다.
 

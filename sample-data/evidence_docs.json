@@ -1,0 +1,15 @@
+{
+  "version": "0.1",
+  "description": "Fallback RAG evidence data used when Bedrock Knowledge Bases is delayed.",
+  "documents": [
+    {
+      "id": "aws-lambda-quotas",
+      "title": "AWS Lambda quotas",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
+      "service": "Lambda",
+      "notes": "Use this source to verify Lambda quota and timeout-related claims.",
+      "keywords": ["Lambda", "quota", "timeout", "execution time"]
+    }
+  ]
+}
+
