@@ -38,11 +38,6 @@ function extractClaimsFromText(documentText, maxClaims = 10) {
     .filter((sentence) => !/^이 문서는/.test(sentence));
 
   return sentences
-    .filter((sentence) =>
-      /(AWS|Amazon|Lambda|S3|DynamoDB|Bedrock|Knowledge Bases|RAG|LLM|EC2|Spot|API Gateway|CloudWatch)/i.test(
-        sentence,
-      ),
-    )
     .slice(0, maxClaims)
     .map((text, index) => ({
       claimId: `claim-${String(index + 1).padStart(3, "0")}`,
