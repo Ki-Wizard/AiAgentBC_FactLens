@@ -1,143 +1,188 @@
 # API Contract
 
-프론트엔드, 백엔드, RAG 담당은 이 API 계약을 기준으로 개발합니다.
+This is the shared contract for the smoke-testable FactLens MVP. Frontend, backend, and RAG work must follow this response shape.
+
+## Runtime
+
+- Runtime: Node.js 20.x Lambda
+- Module format: ESM modules
+- Region: `ap-northeast-2`
+- Deployment tool: AWS SAM
+- Content type: `application/json`
+- MVP execution: synchronous request and response
+- Queue status values `PENDING` and `RUNNING` are reserved for future work only. The backend MVP does not use queues, workers, or Step Functions.
 
 ## Endpoints
 
-```http
-POST /analyze
-GET /analyses/{analysisId}
-```
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/analyze` | Analyze one document synchronously |
+| `GET` | `/analyses/{analysisId}` | Read a stored analysis result |
 
-사용하지 않는 이름:
+## Identifiers
 
-- `POST /analyses`
-- `jobId`
+- `analysisId` format: `analysis-<uuid4>`
+- Use `analysisId` in stored results and URLs.
 
-## Request Body
+## POST /analyze
 
-MVP는 PDF 파일 자체가 아니라 텍스트 기준으로 분석합니다. PDF 업로드 UI가 있어도 백엔드에는 추출된 `documentText`를 보냅니다.
+Request body:
 
 ```json
 {
-  "documentText": "전체 문서 텍스트",
-  "maxClaims": 10
+  "documentText": "AWS Lambda runs your code without provisioning servers.",
+  "maxClaims": 10,
+  "searchMode": "fallback"
 }
 ```
 
-## Fixed Response Shape
+Validation:
+
+- `documentText` is required.
+- `documentText` must be a trimmed non-empty string.
+- `maxClaims` is optional.
+- `maxClaims` defaults to `10`.
+- `maxClaims` must be an integer from `1` through `20`.
+- `searchMode` is optional.
+- `searchMode` defaults to backend configuration.
+- `searchMode` must be `fallback` or `internet` when provided.
+
+Search modes:
+
+| Value | Meaning |
+| --- | --- |
+| `fallback` | Use `sample-data/evidence_docs.json` / packaged fallback evidence only |
+| `internet` | Search official-source web results first, then fall back to packaged evidence if no search API key or result is available |
+
+Success response:
 
 ```json
 {
-  "analysisId": "analysis-001",
+  "analysisId": "analysis-00000000-0000-4000-8000-000000000000",
   "status": "COMPLETED",
   "summary": {
-    "totalClaims": 5,
+    "totalClaims": 1,
     "supported": 1,
-    "conflicted": 2,
-    "insufficient": 1,
-    "exaggerated": 1
+    "conflicted": 0,
+    "insufficient": 0,
+    "exaggerated": 0
   },
   "claims": [
     {
       "claimId": "claim-001",
-      "text": "AWS Lambda 함수는 최대 5분까지만 실행할 수 있다.",
-      "label": "공식 근거와 충돌",
-      "confidence": 0.91,
-      "reason": "공식 근거와 제한 시간이 다르다.",
-      "correctedText": "공식 quota 문서를 기준으로 실행 시간 제한을 다시 작성해야 한다.",
+      "text": "AWS Lambda runs your code without provisioning servers.",
+      "label": "근거 있음",
+      "confidence": 0.95,
+      "reason": "The evidence states that Lambda runs code without provisioning or managing servers.",
+      "correctedText": null,
       "sources": [
         {
-          "title": "AWS Lambda quotas",
-          "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html"
+          "title": "AWS Lambda documentation",
+          "uri": "s3://factlens-dev-evidence-docs-069423016509-ap-northeast-2/source-docs/aws-evidence-corpus.md",
+          "excerpt": "Run code without provisioning or managing servers."
         }
       ],
-      "evidence": []
+      "evidence": [
+        {
+          "bucket": "factlens-dev-evidence-docs-069423016509-ap-northeast-2",
+          "key": "source-docs/aws-evidence-corpus.md",
+          "excerpt": "Run code without provisioning or managing servers."
+        }
+      ]
     }
   ]
 }
 ```
 
-## Claim Rendering Fields
+On success, `POST /analyze` returns `status: "COMPLETED"`.
 
-Frontend는 claim마다 아래 필드를 기대합니다.
+## GET /analyses/{analysisId}
 
-- `claimId`
-- `text`
-- `label`
-- `confidence`
-- `reason`
-- `correctedText`
-- `sources[].title`
-- `sources[].url`
-- `evidence`
+Path parameter:
 
-## Summary Keys
+- `analysisId`: `analysis-<uuid4>`
 
-- `totalClaims`
-- `supported`
-- `conflicted`
-- `insufficient`
-- `exaggerated`
+Success response uses the same full analysis schema as `POST /analyze`.
 
-## Fixed Labels
+## Analysis Schema
 
-아래 문자열은 프론트엔드 색상 처리와 연결되므로 임의로 바꾸지 않습니다.
+Top-level fields:
 
-```text
-근거 있음
-공식 근거와 충돌
-근거 부족
-과장 표현
-```
+- `analysisId`: string using `analysis-<uuid4>` format
+- `status`: `COMPLETED` for MVP success responses
+- `summary`: aggregate counts
+- `claims`: array of claim results
 
-## Label Colors
+Shared claim fields:
 
-| Label | Color |
-| --- | --- |
-| `근거 있음` | Green |
-| `공식 근거와 충돌` | Red |
-| `근거 부족` | Gray |
-| `과장 표현` | Yellow |
+- `claimId`: stable claim identifier within the analysis
+- `text`: extracted claim text
+- `label`: one of the exact Korean labels below
+- `confidence`: numeric confidence from `0` through `1`
+- `reason`: short explanation for the label
+- `correctedText`: corrected wording when useful, otherwise `null`
+- `sources`: evidence source list for display and traceability
+- `evidence`: Data/Demo evidence snippets and storage pointers used by backend smoke checks
 
-## Mock and Fallback Rule
+Labels:
 
-- Frontend mock JSON도 실제 API 응답과 같은 schema를 사용합니다.
-- Bedrock/Knowledge Bases fallback 결과도 같은 schema를 사용합니다.
-- fallback 결과라고 UI에서 특별 취급하지 않고 정상 결과처럼 렌더링합니다.
-- 성공 mock 파일은 `sample-data/expected-results/analyze-success.json`을 기준으로 합니다.
+- `근거 있음`
+- `공식 근거와 충돌`
+- `근거 부족`
+- `과장 표현`
 
-## Frontend Config
+Summary counting rules:
 
-API 주소는 하드코딩하지 않고 환경변수 또는 config로 받습니다.
+- `summary.conflicted` counts claims where `label === "공식 근거와 충돌"`.
+- The backend recomputes summary counts from `claims[]` and does not trust LLM-provided counts.
 
-```text
-API_BASE_URL
-```
+## Data/Demo Fixtures
 
-## Backend to RAG Contract
+Canonical backend smoke fixtures:
 
-Backend가 RAG 모듈에 전달하는 입력:
+- Input document: `sample-data/sample_wrong_aws_deck.md`
+- Success result: `sample-data/expected-results/analyze-success.json`
+- Bedrock fallback result: `sample-data/expected-results/bedrock-fallback.json`
 
-```json
-{
-  "documentText": "전체 문서 텍스트",
-  "maxClaims": 10
-}
-```
-
-RAG가 Backend에 반환하는 출력:
-
-- `claims` 배열
-- 각 claim의 `claimId`, `text`, `label`, `confidence`, `reason`, `correctedText`, `sources`, `evidence`
-- `label`은 고정 라벨 4개 중 하나
-- `confidence`는 0~1 숫자
-- `sources`는 `title`, `url` 필수
-- Bedrock/Knowledge Bases 실패 시 `sample-data/evidence_docs.json` 기반 fallback 결과 반환 가능
+Both result fixtures must use the shared claim fields `claimId`, `text`, `label`, `confidence`, `reason`, `correctedText`, `sources`, and `evidence`.
 
 ## RAG Integration
 
-- Branch: `feature/rag-bedrock`
-- Entrypoint: `backend/rag/lambdaHandler.mjs`
-- Function: `analyzeDocument(input)`
-- Fallback RAG도 동일한 응답 schema를 반환합니다.
+- Backend calls `analyzeDocument(input)` from `backend/rag/lambdaHandler.mjs` after request validation.
+- `FACTLENS_USE_FALLBACK=true` forces the same response schema through the fallback path.
+- Bedrock or Knowledge Base errors also fall back to the same schema.
+
+Current evidence data locations:
+
+- Evidence bucket: `factlens-dev-evidence-docs-069423016509-ap-northeast-2`
+- Evidence corpus key: `source-docs/aws-evidence-corpus.md`
+- Fallback S3 key: `fallback/evidence_docs.json`
+
+Warning: `factlens-rag-evidence-069423016509-ap-northeast-2` was created incorrectly. do not use it.
+
+## Errors
+
+Error body:
+
+```json
+{
+  "error": {
+    "code": "INVALID_DOCUMENT_TEXT",
+    "message": "documentText must be a non-empty string."
+  }
+}
+```
+
+Error codes:
+
+| Code | Meaning |
+| --- | --- |
+| `INVALID_DOCUMENT_TEXT` | `documentText` is missing, not a string, or empty after trimming |
+| `INVALID_JSON` | Request body is not valid JSON |
+| `INVALID_MAX_CLAIMS` | `maxClaims` is not an integer from `1` through `20` |
+| `INVALID_SEARCH_MODE` | `searchMode` is not `fallback` or `internet` |
+| `ANALYSIS_NOT_FOUND` | No analysis exists for the requested `analysisId` |
+
+## Out of Scope
+
+This backend contract does not define frontend implementation, RAG prompt work, demo asset implementation, PDF parsing, or PPTX parsing.

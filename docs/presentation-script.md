@@ -12,6 +12,10 @@ FactLens는 AWS/AI 발표자료 속 기술 주장을 문장 단위로 추출하�
 
 사용자가 발표자료 텍스트를 넣으면 FactLens가 핵심 claim을 추출합니다. 각 claim은 AWS 공식 문서와 비교되고, 결과는 `근거 있음`, `공식 근거와 충돌`, `근거 부족`, `과장 표현` 중 하나로 표시됩니다. 사용자는 틀린 문장만 빠르게 확인하고, 공식 출처와 수정 제안까지 볼 수 있습니다.
 
+## Current Scope
+
+현재 구현은 배포된 Backend API, DynamoDB 저장, fallback evidence 기반 RAG, 그리고 선택적인 공식 출처 인터넷 검색 옵션까지입니다. Bedrock Knowledge Bases와 Bedrock 모델 판정은 같은 응답 스키마에 붙일 수 있는 확장 지점으로 설명합니다. React 화면 구현은 `feature/frontend-ui` 브랜치에 있으며, 최종 main 병합 전에는 별도 브랜치 구현 상태로 구분합니다.
+
 ## Demo Script
 
 1. 데모 입력으로 `sample-data/sample_wrong_aws_deck.md`를 사용합니다.
@@ -24,4 +28,4 @@ FactLens는 AWS/AI 발표자료 속 기술 주장을 문장 단위로 추출하�
 
 ## Closing
 
-FactLens의 핵심은 RAG를 단순 챗봇에 쓰는 것이 아니라, 공식 근거와 사용자 문서의 주장을 비교해서 오류를 눈에 보이게 만드는 것입니다. AWS 계정에서는 S3, Lambda, API Gateway, Bedrock, DynamoDB를 활용하고, Knowledge Bases가 지연되더라도 fallback evidence 데이터로 데모가 가능하도록 설계했습니다.
+FactLens의 핵심은 RAG를 단순 챗봇에 쓰는 것이 아니라, 공식 근거와 사용자 문서의 주장을 비교해서 오류를 눈에 보이게 만드는 것입니다. 현재 MVP는 API Gateway, Lambda, DynamoDB, fallback evidence 데이터로 이 흐름을 검증했고, Bedrock Knowledge Bases와 Bedrock 모델 판정은 이후 같은 스키마에 연결할 수 있도록 분리해 두었습니다.

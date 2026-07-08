@@ -21,17 +21,21 @@ FactLens 사용자 화면 영역입니다.
 
 초기 MVP는 텍스트 입력을 필수 플로우로 만들고, PDF/PPTX는 직접 지원 범위에서 제외합니다. 라벨 색상은 `docs/api-contract.md`의 고정 문자열을 기준으로 처리합니다.
 
+React/Vite 구현은 `origin/feature/frontend-ui`에 있으며, 이 문서가 있는 `feature/demo-docs` 기준으로는 최종 `origin/main` 병합 여부를 별도로 확인해야 합니다.
+
 ## API Requirements
 
 - 호출: `POST /analyze`
 - 조회: `GET /analyses/{analysisId}`
 - 금지: `POST /analyses`, `jobId`
+- 선택: `searchMode`는 `fallback` 또는 `internet`
 - 요청 body:
 
 ```json
 {
   "documentText": "전체 문서 텍스트",
-  "maxClaims": 10
+  "maxClaims": 10,
+  "searchMode": "fallback"
 }
 ```
 

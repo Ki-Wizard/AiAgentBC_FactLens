@@ -38,6 +38,14 @@ Claim 객체는 아래 필드를 포함합니다.
 - Frontend는 `claimId`를 결과 카드 key로 사용하고, `label`, `confidence`, `reason`, `correctedText`, `sources`, `evidence`를 그대로 렌더링합니다.
 - RAG는 Bedrock 응답 실패 시에도 `sample-data/expected-results/bedrock-fallback.json`과 같은 shape을 반환합니다.
 - Demo 자료는 `sample-data/expected-results/analyze-success.json`을 정상 응답 fixture로 사용합니다.
+- 최신 Backend 계약은 `searchMode`를 지원합니다. 기본 또는 `fallback`은 packaged evidence를 사용하고, `internet`은 공식 출처 검색을 먼저 시도한 뒤 실패하면 fallback evidence로 돌아갑니다.
+
+## Current Status
+
+- Backend/RAG MVP: `origin/main`에 병합됨
+- Deployed Backend API: `origin/main` 문서 기준 준비됨
+- Frontend React MVP: `origin/feature/frontend-ui`에 구현됨, `origin/main` 미병합
+- Bedrock Knowledge Bases sync 및 Bedrock 모델 판정: 확장 또는 연결 예정
 
 ## Evidence Storage
 

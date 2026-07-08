@@ -27,6 +27,13 @@ factlens/
   README.md
 ```
 
+## Main Documents
+
+- [프로젝트 통합 문서](docs/팩트렌즈_프로젝트_통합_문서.md): Git 병합 기록, 체크리스트, AWS 기술, 사용 도구, 연결 흐름 정리
+- [API Contract](docs/api-contract.md): Backend, Frontend, RAG 공통 입출력 스키마
+- [Architecture](docs/architecture.md): 서비스 흐름과 AWS 아키텍처
+- [RAG Contract](docs/rag-contract.md): RAG 담당과 Backend 담당의 연결 규칙
+
 ## Fixed Labels
 
 프론트엔드 색상 처리와 백엔드/RAG 판정 결과는 아래 문자열을 그대로 사용합니다.
@@ -49,12 +56,32 @@ factlens/
 - Result storage: DynamoDB
 - Optional: Guardrails
 
-## Next Steps
+## Current Backend API
 
-1. 역할별 브랜치에서 작업을 시작합니다.
-2. 프론트엔드, 백엔드, RAG 담당은 `docs/api-contract.md`의 응답 스키마를 기준으로 개발합니다.
-3. Data/Demo 담당은 `sample-data/evidence_docs.json`과 `sample-data/sample_wrong_aws_deck.md`를 먼저 채웁니다.
-4. 다른 담당 폴더는 직접 수정하지 않는 것을 원칙으로 합니다.
+CloudFormation stack `factlens-backend-api` is deployed in `ap-northeast-2`.
+
+```text
+Base URL: https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com
+POST /analyze
+GET /analyses/{analysisId}
+```
+
+Internet official-source search is available through request body `searchMode: "internet"` when a search API key is configured on Lambda.
+
+```json
+{
+  "documentText": "AWS Lambda 함수는 최대 5분까지만 실행할 수 있다.",
+  "maxClaims": 3,
+  "searchMode": "internet"
+}
+```
+
+## Current Integration Notes
+
+1. Backend/RAG changes from `origin/main` are the current implementation baseline.
+2. Frontend React implementation exists on `origin/feature/frontend-ui`, but is not merged into `origin/main` yet.
+3. Presentation/demo notes live on `feature/demo-docs` and should describe implemented fallback RAG separately from Bedrock/Knowledge Bases extension work.
+4. Bedrock Knowledge Bases and Bedrock model judging remain extension points unless a later branch documents a completed sync/model smoke test.
 
 ## Demo Assets
 

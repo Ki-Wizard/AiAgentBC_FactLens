@@ -16,15 +16,13 @@ FactLens는 AWS/AI 발표자료 속 기술 주장을 문장 단위로 추출하�
    - 결과를 색상과 출처로 보여줍니다.
 
 3. **AWS Architecture**
-   - React on S3
-   - API Gateway
-   - Lambda
-   - Bedrock / Bedrock Knowledge Bases
-   - DynamoDB
-   - fallback: `sample-data/evidence_docs.json`
+   - 현재 구현: API Gateway, Lambda, DynamoDB, fallback RAG
+   - 선택 구현: `searchMode: "internet"` 공식 출처 검색
+   - 별도 브랜치 구현: `feature/frontend-ui` React 화면
+   - 확장 예정: Bedrock / Bedrock Knowledge Bases
 
 4. **Team Roles**
-   - RAG & Bedrock: claim 추출/판정 프롬프트, Knowledge Bases
+   - RAG & Bedrock: claim 추출/판정 프롬프트, fallback RAG, Knowledge Bases 확장
    - Backend & AWS API: Lambda, API Gateway, DynamoDB
    - Frontend & UX: 입력/결과 화면
    - Data, Demo & Presentation: 데모 입력, 근거 데이터, 발표자료
@@ -36,8 +34,9 @@ FactLens는 AWS/AI 발표자료 속 기술 주장을 문장 단위로 추출하�
    - 근거 부족 claim 확인
 
 6. **Fallback Strategy**
-   - Bedrock 실패: mock JSON 사용
+   - Bedrock 모델 미연결: fallback judge 결과로 시연
    - Knowledge Bases 지연: `evidence_docs.json` 기반 fallback RAG
+   - Frontend 병합 지연: API 응답 JSON과 별도 frontend 브랜치 화면으로 시연
    - API 실패: `sample-data/expected-results/analyze-success.json`으로 결과 화면 시연
 
 7. **Result**

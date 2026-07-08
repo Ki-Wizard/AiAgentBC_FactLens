@@ -10,15 +10,15 @@
 
 ## Q3. Bedrock Knowledge Bases가 안 되면 어떻게 하나요?
 
-`sample-data/evidence_docs.json` 기반 fallback RAG로 대체합니다. 발표에서는 Knowledge Bases를 목표 아키텍처로 설명하고, MVP에서는 같은 evidence 구조로 검색 흐름을 유지합니다.
+`sample-data/evidence_docs.json` 기반 fallback RAG로 대체합니다. 발표에서는 Knowledge Bases를 확장 아키텍처로 설명하고, 현재 MVP에서는 같은 evidence 구조로 검색과 판정 흐름을 유지합니다.
 
 ## Q4. Guardrails가 모든 오류를 막아주나요?
 
 아닙니다. Guardrails는 안전장치로 사용할 수 있지만 모든 잘못된 답변이나 환각을 100% 차단한다고 단정하면 과장입니다. 그래서 데모 입력에도 이 문장을 과장 표현 예시로 넣었습니다.
 
-## Q5. 왜 실시간 웹 검색을 안 하나요?
+## Q5. 실시간 웹 검색은 어떻게 쓰나요?
 
-발표 데모에서는 재현성과 출처 통제가 중요합니다. 실시간 웹 검색은 결과가 바뀔 수 있으므로, MVP에서는 AWS 공식 문서와 팀이 정리한 evidence만 사용합니다.
+기본 데모는 재현성을 위해 fallback evidence를 사용합니다. 최신 구현에는 `searchMode: "internet"` 옵션이 있으며, 검색 API 키가 Lambda에 설정된 경우 `docs.aws.amazon.com`, `aws.amazon.com`, `repost.aws` 같은 허용 도메인의 공식 출처 검색을 먼저 시도합니다. 키가 없거나 검색 결과가 없으면 fallback evidence로 돌아갑니다.
 
 ## Q6. PDF 업로드는 왜 선택 기능인가요?
 

@@ -9,6 +9,12 @@
 | Frontend & UX | `feature/frontend-ui` |
 | Data, Demo & Presentation | `feature/demo-docs` |
 
+## Current Integration Status
+
+- `origin/main`: Backend/RAG/API deployment baseline.
+- `origin/feature/frontend-ui`: React MVP exists but is not merged into `origin/main`.
+- `feature/demo-docs`: Presentation/demo notes only; do not carry backend/RAG/infra deletions.
+
 ## Common Flow
 
 ```bash
@@ -43,3 +49,5 @@ git push origin feature/your-branch
 - `docs/`: Data, Demo & Presentation 담당 중심, 공통 문서는 협의 후 수정
 
 다른 담당 폴더를 직접 수정해야 하면 먼저 팀 채팅에 이유를 남깁니다.
+
+`feature/demo-docs`를 갱신할 때는 충돌 파일 중 backend, RAG, infra 구현 파일은 `origin/main` 기준을 유지하고, 발표 전용 문서만 추가 diff로 남깁니다.
