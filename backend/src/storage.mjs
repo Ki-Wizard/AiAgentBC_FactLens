@@ -196,6 +196,7 @@ function toStoredAnalysis(analysis) {
     status: analysis.status,
     summary: analysis.summary,
     claims: analysis.claims,
+    ...(analysis.errorMessage == null ? {} : { errorMessage: analysis.errorMessage }),
   });
 }
 

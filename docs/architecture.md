@@ -52,7 +52,7 @@ User
 - 사용할 Foundation Model
 - Knowledge Base 벡터 저장소 방식
 - PDF 업로드 추가 여부
-- `origin/feature/frontend-ui`의 React 구현을 `origin/main`에 병합할 시점
+- Frontend 배포 URL과 Backend API URL을 연결한 최종 브라우저 E2E 검증 시점
 
 ## AWS Defaults
 

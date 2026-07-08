@@ -44,7 +44,7 @@ Claim 객체는 아래 필드를 포함합니다.
 
 - Backend/RAG MVP: `origin/main`에 병합됨
 - Deployed Backend API: `origin/main` 문서 기준 준비됨
-- Frontend React MVP: `origin/feature/frontend-ui`에 구현됨, `origin/main` 미병합
+- Frontend React MVP: `origin/main`에 병합됨
 - Bedrock Knowledge Bases sync 및 Bedrock 모델 판정: 확장 또는 연결 예정
 
 ## Evidence Storage

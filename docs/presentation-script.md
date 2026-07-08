@@ -14,7 +14,7 @@ FactLens는 AWS/AI 발표자료 속 기술 주장을 문장 단위로 추출하�
 
 ## Current Scope
 
-현재 구현은 배포된 Backend API, DynamoDB 저장, fallback evidence 기반 RAG, 그리고 선택적인 공식 출처 인터넷 검색 옵션까지입니다. Bedrock Knowledge Bases와 Bedrock 모델 판정은 같은 응답 스키마에 붙일 수 있는 확장 지점으로 설명합니다. React 화면 구현은 `feature/frontend-ui` 브랜치에 있으며, 최종 main 병합 전에는 별도 브랜치 구현 상태로 구분합니다.
+현재 구현은 React 화면, 배포된 Backend API, DynamoDB 저장, fallback evidence 기반 RAG, 그리고 선택적인 공식 출처 인터넷 검색 옵션까지입니다. Bedrock Knowledge Bases와 Bedrock 모델 판정은 같은 응답 스키마에 붙일 수 있는 확장 지점으로 설명합니다.
 
 ## Demo Script
 

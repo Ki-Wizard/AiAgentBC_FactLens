@@ -8,6 +8,7 @@ Lambda와 API Gateway 기반 백엔드 영역입니다. This README covers only 
 - Backend API contract enforcement
 - RAG handoff through `backend/rag/lambdaHandler.mjs`
 - DynamoDB analysis result storage
+- Raw request text persistence to the configured S3 archive prefix
 - Local and deployed backend smoke checks
 
 Out of scope here: frontend implementation, RAG prompt work, demo asset implementation, PDF parsing, and PPTX parsing.
@@ -57,6 +58,7 @@ Current evidence locations:
 - Bucket: `factlens-dev-evidence-docs-069423016509-ap-northeast-2`
 - Corpus key: `source-docs/aws-evidence-corpus.md`
 - Fallback S3 key: `fallback/evidence_docs.json`
+- Raw input archive env vars: `INPUT_ARCHIVE_BUCKET_NAME`, `INPUT_ARCHIVE_PREFIX`
 
 Warning: `factlens-rag-evidence-069423016509-ap-northeast-2` was created incorrectly. do not use it.
 

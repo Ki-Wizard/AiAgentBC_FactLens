@@ -11,8 +11,8 @@
 
 ## Current Integration Status
 
-- `origin/main`: Backend/RAG/API deployment baseline.
-- `origin/feature/frontend-ui`: React MVP exists but is not merged into `origin/main`.
+- `origin/main`: Backend/RAG/API deployment baseline and React frontend MVP.
+- `origin/feature/frontend-ui`: React MVP source branch; merged into `origin/main`.
 - `feature/demo-docs`: Presentation/demo notes only; do not carry backend/RAG/infra deletions.
 
 ## Common Flow

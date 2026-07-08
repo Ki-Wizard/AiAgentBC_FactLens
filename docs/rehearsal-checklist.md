@@ -9,7 +9,7 @@
 - [ ] mock JSON의 claim이 `claimId`, `text`, `label`, `confidence`, `reason`, `correctedText`, `sources`, `evidence`를 포함하는지 확인합니다.
 - [ ] 결과 화면에서 최소 3가지 색상 라벨이 보이는지 확인합니다.
 - [ ] Lambda timeout claim과 Guardrails 100% claim을 설명할 수 있는지 확인합니다.
-- [ ] `feature/frontend-ui`가 최종 브랜치에 병합됐는지 확인하고, 미병합이면 별도 브랜치 화면 또는 JSON 데모로 설명합니다.
+- [ ] 최종 브랜치에 React 화면이 포함됐는지 확인하고, 브라우저에서 입력/결과 화면을 한 번 실행합니다.
 - [ ] Bedrock Knowledge Bases와 Bedrock 모델 호출은 완료 여부를 확인한 뒤, 미완료면 확장 항목으로만 말합니다.
 
 ## Failure Fallback Lines

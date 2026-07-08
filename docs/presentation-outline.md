@@ -16,9 +16,8 @@ FactLens는 AWS/AI 발표자료 속 기술 주장을 문장 단위로 추출하�
    - 결과를 색상과 출처로 보여줍니다.
 
 3. **AWS Architecture**
-   - 현재 구현: API Gateway, Lambda, DynamoDB, fallback RAG
+   - 현재 구현: React 화면, API Gateway, Lambda, DynamoDB, fallback RAG
    - 선택 구현: `searchMode: "internet"` 공식 출처 검색
-   - 별도 브랜치 구현: `feature/frontend-ui` React 화면
    - 확장 예정: Bedrock / Bedrock Knowledge Bases
 
 4. **Team Roles**
@@ -36,7 +35,7 @@ FactLens는 AWS/AI 발표자료 속 기술 주장을 문장 단위로 추출하�
 6. **Fallback Strategy**
    - Bedrock 모델 미연결: fallback judge 결과로 시연
    - Knowledge Bases 지연: `evidence_docs.json` 기반 fallback RAG
-   - Frontend 병합 지연: API 응답 JSON과 별도 frontend 브랜치 화면으로 시연
+   - Frontend 연결 지연: API 응답 JSON과 mock/fallback 화면으로 시연
    - API 실패: `sample-data/expected-results/analyze-success.json`으로 결과 화면 시연
 
 7. **Result**

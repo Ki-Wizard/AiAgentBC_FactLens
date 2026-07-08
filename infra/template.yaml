@@ -86,6 +86,8 @@ Globals:
     Tracing: Active
     Environment:
       Variables:
+        INPUT_ARCHIVE_BUCKET_NAME: !Ref InputArchiveBucket
+        INPUT_ARCHIVE_PREFIX: raw-analyses
         ANALYSES_TABLE_NAME: !Ref AnalysesTable
         FACTLENS_USE_FALLBACK: !Ref FactLensUseFallback
         FACTLENS_STORAGE_MODE: !Ref FactLensStorageMode
@@ -102,6 +104,8 @@ Globals:
 
 Metadata:
   FactLensEnvironmentContract:
+    INPUT_ARCHIVE_BUCKET_NAME: Mapped from the InputArchiveBucket resource.
+    INPUT_ARCHIVE_PREFIX: Mapped from inline default.
     AWS_REGION: Provided automatically by the Lambda runtime; do not override the reserved variable.
     ANALYSES_TABLE_NAME: Mapped from the AnalysesTableName parameter.
     FACTLENS_USE_FALLBACK: Mapped from the FactLensUseFallback parameter.
@@ -149,6 +153,29 @@ Resources:
           KeyType: HASH
       SSESpecification:
         SSEEnabled: true
+      Tags:
+        - Key: Application
+          Value: FactLens
+        - Key: Component
+          Value: Backend
+        - Key: Stage
+          Value: !Ref FactLensStage
+
+  InputArchiveBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub factlens-input-archive-${FactLensStage}-${AWS::AccountId}-${AWS::Region}
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
       Tags:
         - Key: Application
           Value: FactLens
@@ -206,6 +233,11 @@ Resources:
                   s3:prefix:
                     - !Ref EvidenceCorpusKey
                     - !Ref FallbackEvidenceKey
+            - Sid: InputArchiveWrite
+              Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub arn:${AWS::Partition}:s3:::${InputArchiveBucket}/*
 
 Outputs:
   ApiEndpoint:
@@ -214,6 +246,9 @@ Outputs:
   AnalysesTableName:
     Description: DynamoDB table name used for analysis persistence.
     Value: !Ref AnalysesTable
+  InputArchiveBucketName:
+    Description: S3 bucket name for storing raw request text.
+    Value: !Ref InputArchiveBucket
   BackendFunctionName:
     Description: Lambda function name for the backend API handler.
     Value: !Ref FactLensBackendFunction

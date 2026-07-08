@@ -66,6 +66,14 @@ POST /analyze
 GET /analyses/{analysisId}
 ```
 
+Selected backend hardening from `feature/backend-api` is reflected in code:
+
+- CORS `OPTIONS` preflight handling
+- `MAX_CLAIMS_DEFAULT` environment default
+- `GET /analyses/{analysisId}` path parameter handling
+- Failed analysis persistence with `status: "FAILED"`
+- Raw input archive support through `InputArchiveBucket`
+
 Internet official-source search is available through request body `searchMode: "internet"` when a search API key is configured on Lambda.
 
 ```json
@@ -78,10 +86,9 @@ Internet official-source search is available through request body `searchMode: "
 
 ## Current Integration Notes
 
-1. Backend/RAG changes from `origin/main` are the current implementation baseline.
-2. Frontend React implementation exists on `origin/feature/frontend-ui`, but is not merged into `origin/main` yet.
-3. Presentation/demo notes live on `feature/demo-docs` and should describe implemented fallback RAG separately from Bedrock/Knowledge Bases extension work.
-4. Bedrock Knowledge Bases and Bedrock model judging remain extension points unless a later branch documents a completed sync/model smoke test.
+1. `origin/main` now contains the backend/RAG baseline and the React frontend MVP.
+2. Presentation/demo notes live on `feature/demo-docs` and should describe implemented fallback RAG separately from Bedrock/Knowledge Bases extension work.
+3. Bedrock Knowledge Bases and Bedrock model judging remain extension points unless a later branch documents a completed sync/model smoke test.
 
 ## Demo Assets
 
