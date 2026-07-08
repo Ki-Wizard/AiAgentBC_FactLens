@@ -4,7 +4,7 @@ set -euo pipefail
 REGION="${AWS_REGION:-ap-northeast-2}"
 PROJECT_NAME="${PROJECT_NAME:-factlens}"
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
-BUCKET_NAME="${BUCKET_NAME:-${PROJECT_NAME}-rag-evidence-${ACCOUNT_ID}-${REGION}}"
+BUCKET_NAME="${BUCKET_NAME:-${PROJECT_NAME}-dev-evidence-docs-${ACCOUNT_ID}-${REGION}}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
@@ -24,6 +24,7 @@ aws s3api put-public-access-block \
   BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
 
 aws s3 sync "${REPO_ROOT}/sample-data/source-docs/" "s3://${BUCKET_NAME}/source-docs/" \
+  --exclude ".gitkeep" \
   --region "${REGION}"
 
 aws s3 cp "${REPO_ROOT}/sample-data/evidence_docs.json" "s3://${BUCKET_NAME}/fallback/evidence_docs.json" \
