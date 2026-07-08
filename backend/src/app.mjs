@@ -1,11 +1,13 @@
 import { isValidAnalysisId, parseAnalyzeRequest, RequestValidationError } from './contract.mjs';
 import {
   errorResponse,
+  optionsResponse,
   InvalidAnalysisResponseError,
   jsonResponse,
   normalizeAnalysisResponse,
 } from './response.mjs';
 import { createStorage } from './storage.mjs';
+import { archiveRequestText } from './inputArchive.mjs';
 
 export function createApiHandler(options = {}) {
   const analyzer = options.analyzer ?? defaultAnalyzer;
@@ -21,6 +23,10 @@ export function createApiHandler(options = {}) {
 
       if (route.type === 'getAnalysis') {
         return await handleGetAnalysis(route.analysisId, storage);
+      }
+
+      if (route.type === 'options') {
+        return optionsResponse();
       }
 
       return errorResponse(404, 'NOT_FOUND', 'Route not found.');
@@ -42,10 +48,33 @@ export const handler = createApiHandler();
 
 async function handleAnalyze(event, analyzer, storage) {
   const request = parseAnalyzeRequest(event);
-  const rawAnalysis = await analyzer(request);
-  const normalizedAnalysis = normalizeAnalysisResponse(rawAnalysis);
-  const storedAnalysis = await storage.putAnalysis(normalizedAnalysis);
-  return jsonResponse(200, storedAnalysis);
+  try {
+    const rawAnalysis = await analyzer(request);
+    const normalizedAnalysis = normalizeAnalysisResponse(rawAnalysis);
+    try {
+      await archiveRequestText(normalizedAnalysis.analysisId, request.documentText);
+    } catch (error) {
+      console.error('[factlens] failed to archive input text', {
+        analysisId: normalizedAnalysis.analysisId,
+        error: error?.message ?? String(error),
+      });
+    }
+    const storedAnalysis = await storage.putAnalysis(normalizedAnalysis);
+    return jsonResponse(200, storedAnalysis);
+  } catch (error) {
+    if (error instanceof InvalidAnalysisResponseError) {
+      throw error;
+    }
+
+    const normalizedError = normalizeAnalysisResponse({
+      status: 'FAILED',
+      claims: [],
+      errorMessage: error?.message ?? 'analysis failed',
+    });
+    normalizedError.errorMessage = error?.message ?? 'analysis failed';
+    const storedError = await storage.putAnalysis(normalizedError);
+    return jsonResponse(200, storedError);
+  }
 }
 
 async function handleGetAnalysis(analysisId, storage) {
@@ -73,6 +102,10 @@ async function defaultAnalyzer(input) {
 function resolveRoute(event) {
   const method = (event?.requestContext?.http?.method ?? event?.httpMethod ?? '').toUpperCase();
   const path = event?.rawPath ?? event?.requestContext?.http?.path ?? event?.path ?? '';
+
+  if (method === 'OPTIONS') {
+    return { type: 'options' };
+  }
 
   if (method === 'POST' && path === '/analyze') {
     return { type: 'analyze' };

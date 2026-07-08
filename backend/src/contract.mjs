@@ -2,6 +2,8 @@ export const DEFAULT_MAX_CLAIMS = 10;
 export const MIN_MAX_CLAIMS = 1;
 export const MAX_MAX_CLAIMS = 20;
 
+const ENV_DEFAULT_MAX_CLAIMS = parseConfiguredDefaultMaxClaims();
+
 export const ALLOWED_LABELS = Object.freeze([
   '근거 있음',
   '공식 근거와 충돌',
@@ -28,6 +30,28 @@ const ERROR_MESSAGES = Object.freeze({
   INVALID_MAX_CLAIMS: 'maxClaims must be an integer from 1 through 20.',
 });
 
+function parseConfiguredDefaultMaxClaims() {
+  const rawDefault = process.env.MAX_CLAIMS_DEFAULT;
+  if (rawDefault == null || rawDefault === '') {
+    return DEFAULT_MAX_CLAIMS;
+  }
+
+  const parsedDefault = Number.parseInt(rawDefault, 10);
+  if (!Number.isInteger(parsedDefault)) {
+    return DEFAULT_MAX_CLAIMS;
+  }
+
+  if (parsedDefault < MIN_MAX_CLAIMS || parsedDefault > MAX_MAX_CLAIMS) {
+    return DEFAULT_MAX_CLAIMS;
+  }
+
+  if (String(parsedDefault) !== rawDefault.trim()) {
+    return DEFAULT_MAX_CLAIMS;
+  }
+
+  return parsedDefault;
+}
+
 export class RequestValidationError extends Error {
   constructor(code) {
     super(ERROR_MESSAGES[code] ?? 'Invalid request.');
@@ -49,7 +73,7 @@ export function parseAnalyzeRequest(event) {
     throw new RequestValidationError('INVALID_DOCUMENT_TEXT');
   }
 
-  const maxClaims = payload.maxClaims ?? DEFAULT_MAX_CLAIMS;
+  const maxClaims = payload.maxClaims ?? ENV_DEFAULT_MAX_CLAIMS;
   if (!Number.isInteger(maxClaims) || maxClaims < MIN_MAX_CLAIMS || maxClaims > MAX_MAX_CLAIMS) {
     throw new RequestValidationError('INVALID_MAX_CLAIMS');
   }
