@@ -53,7 +53,7 @@ fail 0
 curl -i -sS --max-time 30 \
   -X POST https://kprxxco5hi.execute-api.ap-northeast-2.amazonaws.com/analyze \
   -H 'Content-Type: application/json' \
-  --data '{"documentText":"AWS Lambda 함수는 최대 5분까지만 실행할 수 있다.","maxClaims":3}'
+  --data '{"documentText":"AWS Lambda 함수는 최대 5분까지만 실행할 수 있다.","maxClaims":3,"searchMode":"internet"}'
 ```
 
 Expected:

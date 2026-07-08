@@ -195,7 +195,7 @@ a:hover {
   margin-top: 16px;
 }
 
-.input-actions button {
+.input-actions > button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -212,17 +212,51 @@ a:hover {
   transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.input-actions button:hover:not(:disabled) {
+.input-actions > button:hover:not(:disabled) {
   background: linear-gradient(180deg, #5248e6, var(--accent-hover));
   transform: translateY(-1px);
   box-shadow: 0 12px 24px -10px rgba(79, 70, 229, 0.7);
 }
 
-.input-actions button:active:not(:disabled) {
+.input-actions > button:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.input-actions button:disabled {
+.input-actions > button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.mode-toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 38px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  background: var(--surface-muted);
+}
+
+.mode-toggle button {
+  border: 0;
+  padding: 0 12px;
+  color: var(--text-muted);
+  background: transparent;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-toggle button + button {
+  border-left: 1px solid var(--border-strong);
+}
+
+.mode-toggle button.active {
+  color: #ffffff;
+  background: var(--accent);
+}
+
+.mode-toggle button:disabled {
   cursor: wait;
   opacity: 0.7;
 }
@@ -659,6 +693,11 @@ a:hover {
 
   .lookup-row {
     grid-template-columns: 1fr;
+  }
+
+  .input-actions {
+    align-items: stretch;
+    flex-wrap: wrap;
   }
 
   .lookup-row span {

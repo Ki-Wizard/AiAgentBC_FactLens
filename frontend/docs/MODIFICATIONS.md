@@ -11,7 +11,7 @@ Frontend 요구사항 기준으로 아래 항목을 맞췄다.
 ```text
 POST /analyze
 GET /analyses/{analysisId}
-request body: { documentText, maxClaims }
+request body: { documentText, maxClaims, searchMode }
 response claim fields: claimId, text, label, confidence, reason, correctedText, sources[].title, sources[].url, evidence
 summary fields: totalClaims, supported, conflicted, insufficient, exaggerated
 label colors: Green, Red, Gray, Yellow
@@ -64,7 +64,7 @@ infra/DEPLOYMENT.md
 await fetch(`${API_BASE_URL}/analyze`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ documentText: inputText, maxClaims: 10 }),
+  body: JSON.stringify({ documentText: inputText, maxClaims: 10, searchMode }),
 });
 ```
 
