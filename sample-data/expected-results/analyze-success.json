@@ -1,0 +1,73 @@
+{
+  "analysisId": "analysis-demo-001",
+  "status": "COMPLETED",
+  "summary": {
+    "totalClaims": 4,
+    "supported": 1,
+    "conflicted": 1,
+    "insufficient": 1,
+    "exaggerated": 1
+  },
+  "claims": [
+    {
+      "claimId": "claim-001",
+      "text": "Amazon Bedrock은 고객 데이터를 자동으로 모델 학습에 사용한다.",
+      "label": "공식 근거와 충돌",
+      "confidence": 0.91,
+      "reason": "공식 근거는 Amazon Bedrock이 고객 콘텐츠를 기본 모델 학습에 사용하지 않는다고 명시하고 있습니다.",
+      "correctedText": "Amazon Bedrock은 고객 콘텐츠를 기본 모델 학습에 사용하지 않습니다.",
+      "sources": [
+        {
+          "title": "Amazon Bedrock - Data protection",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html"
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "claimId": "claim-002",
+      "text": "AWS Lambda 함수는 최대 15분까지 실행할 수 있다.",
+      "label": "근거 있음",
+      "confidence": 0.94,
+      "reason": "검색된 공식 AWS 문서가 Lambda 함수의 실행 시간 제한 정보와 일치합니다.",
+      "correctedText": "수정이 필요하지 않습니다.",
+      "sources": [
+        {
+          "title": "AWS Lambda quotas and limits",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html"
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "claimId": "claim-003",
+      "text": "Amazon S3는 높은 내구성을 제공하도록 설계되어 있지만, 명확한 SLA를 보장하지 않습니다.",
+      "label": "근거 부족",
+      "confidence": 0.73,
+      "reason": "해당 주장에 대한 명확한 근거 자료를 찾을 수 없습니다. S3 SLA 정보를 확인해야 합니다.",
+      "correctedText": "Amazon S3의 내구성 및 SLA 정보는 공식 문서에서 확인할 수 있습니다.",
+      "sources": [
+        {
+          "title": "Amazon S3 FAQ",
+          "url": "https://aws.amazon.com/s3/faqs/"
+        }
+      ],
+      "evidence": []
+    },
+    {
+      "claimId": "claim-004",
+      "text": "Amazon Bedrock은 무조건 모든 고객이 일관된 결과를 얻을 수 있음을 100% 보장한다.",
+      "label": "과장 표현",
+      "confidence": 0.85,
+      "reason": "'무조건', '100% 보장' 같은 절대적 표현은 공식 문서의 신중한 표현과 맞지 않습니다. 실제 문서는 '설계되어 있습니다', '일반적으로' 같은 상대적 표현을 사용합니다.",
+      "correctedText": "Amazon Bedrock은 일관된 결과를 제공하도록 설계되어 있습니다.",
+      "sources": [
+        {
+          "title": "Amazon Bedrock - User Guide",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html"
+        }
+      ],
+      "evidence": []
+    }
+  ]
+}
