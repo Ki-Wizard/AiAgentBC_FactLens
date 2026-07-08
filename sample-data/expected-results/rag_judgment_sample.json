@@ -1,0 +1,55 @@
+{
+  "analysisId": "analysis-sample-001",
+  "status": "COMPLETED",
+  "summary": {
+    "totalClaims": 8,
+    "supported": 2,
+    "conflicted": 3,
+    "insufficient": 1,
+    "exaggerated": 2
+  },
+  "claims": [
+    {
+      "claimId": "claim-001",
+      "text": "AWS Lambda 함수는 최대 5분까지만 실행할 수 있으므로 긴 배치 작업에는 절대 사용할 수 없다.",
+      "label": "공식 근거와 충돌",
+      "confidence": 0.93,
+      "reason": "AWS Lambda 공식 quota 근거는 function timeout이 900초, 즉 15분이라고 설명한다. 따라서 최대 5분이라는 설명은 공식 근거와 충돌한다.",
+      "correctedText": "AWS Lambda 함수의 최대 실행 시간은 900초, 즉 15분으로 설정할 수 있다.",
+      "sources": [
+        {
+          "title": "AWS Lambda quotas",
+          "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html"
+        }
+      ]
+    },
+    {
+      "claimId": "claim-004",
+      "text": "Amazon Bedrock은 AWS에서 제공하는 생성형 AI 서비스이며, 여러 foundation model을 API로 사용할 수 있게 해준다.",
+      "label": "근거 있음",
+      "confidence": 0.87,
+      "reason": "Amazon Bedrock 공식 설명은 foundation model 접근을 제공하는 완전관리형 생성형 AI 서비스라고 설명한다.",
+      "correctedText": "Amazon Bedrock은 foundation model에 접근해 생성형 AI 애플리케이션을 만들고 확장할 수 있는 완전관리형 서비스다.",
+      "sources": [
+        {
+          "title": "Overview - Amazon Bedrock",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html"
+        }
+      ]
+    },
+    {
+      "claimId": "claim-007",
+      "text": "RAG를 사용하면 LLM의 환각이 완전히 사라지므로 별도의 검증이나 출처 표시는 필요 없다.",
+      "label": "과장 표현",
+      "confidence": 0.82,
+      "reason": "근거는 RAG가 응답의 관련성과 정확성을 높인다고 설명하지만, 환각을 완전히 제거한다고 보장하지 않는다.",
+      "correctedText": "RAG는 관련 근거를 활용해 LLM 응답의 관련성과 정확성을 높이는 데 도움이 되지만, 출처 확인과 검증은 여전히 필요하다.",
+      "sources": [
+        {
+          "title": "Retrieve data and generate AI responses with Amazon Bedrock Knowledge Bases",
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html"
+        }
+      ]
+    }
+  ]
+}
